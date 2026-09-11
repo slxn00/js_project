@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>출결 관리</title>
+    <style>
+        :root { --ink: #203039; --muted: #718087; --line: #dce6e5; --mint: #3dbb98; --paper: #f5f8f7; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); background: var(--paper); font-family: "Noto Sans KR", sans-serif; }
+        .shell { width: min(900px, calc(100% - 36px)); margin: auto; padding: 32px 0 48px; }
+        .topbar, .intro, .panel-header, .student-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .topbar { margin-bottom: 56px; }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; color: white; background: var(--ink); border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .brand-name, h1, .panel-title { margin: 0; }
+        .brand-name { font-size: 15px; }
+        .brand-subtitle, .eyebrow, .date, .panel-meta { color: var(--muted); font-size: 12px; }
+        .brand-subtitle { margin: 3px 0 0; }
+        .intro { align-items: end; margin-bottom: 28px; }
+        .eyebrow { margin: 0 0 8px; color: #168a72; font-weight: bold; letter-spacing: .08em; }
+        h1 { font-size: clamp(28px, 6vw, 46px); line-height: 1.15; }
+        .camera-link { padding: 11px 14px; color: white; background: var(--ink); border-radius: 7px; font-size: 13px; font-weight: bold; text-decoration: none; }
+        .panel { padding: 0 18px 18px; background: white; border: 1px solid var(--line); border-radius: 12px; }
+        .panel-header { padding: 18px 0 14px; border-bottom: 1px solid var(--line); }
+        .panel-title { font-size: 16px; }
+        .student-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 24px; }
+        .student-row { min-height: 48px; padding: 0 4px; border-bottom: 1px solid #edf2f1; cursor: pointer; }
+        .student-row:hover { background: #f5fbf9; }
+        .student-row input { width: 18px; height: 18px; accent-color: var(--mint); }
+        .student-name { font-size: 14px; }
+        @media (max-width: 600px) { .intro { align-items: start; flex-direction: column; } .camera-link { width: 100%; text-align: center; } }
+        @media (max-width: 480px) { .shell { width: min(100% - 24px, 500px); padding-top: 22px; } .topbar { margin-bottom: 38px; } .student-list { grid-template-columns: 1fr; } }
+    </style>
+</head>
+
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark">미림</span>
+                <div>
+                    <p class="brand-name">CLASSROOM</p>
+                    <p class="brand-subtitle">오늘의 출결 관리</p>
+                </div>
+            </div>
+            <time class="date" id="todayDate"></time>
+        </header>
+
+        <section class="intro">
+            <div>
+                <p class="eyebrow">MIRIM</p>
+                <h1>관리자 출결 현황</h1>
+            </div>
+            <a class="camera-link" href="camera.html">◉ 얼굴 인식으로 출석</a>
+        </section>
+
+        <div class="workspace">
+            <section class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">학생 출결 체크</h2>
+                    <span class="panel-meta">총 17명</span>
+                </div>
+
+                <form class="student-list">
+                    <label class="student-row"><span class="student-name">공은성</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">김세주</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">김진영</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">노윤서</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">민서연</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">박주혁</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">박준서</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">성낙준</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">성연우</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">신수아</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">윤지온</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">이담현</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">이연수</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">정지은</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">조유진</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">최명준</span><input type="checkbox" class="student"></label>
+                    <label class="student-row"><span class="student-name">홍성재</span><input type="checkbox" class="student"></label>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
