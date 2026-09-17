@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>클래스룸</title>
+    <style>
+        :root {
+            --blue: #2f6fed;
+            --blue-soft: #dbeafe;
+            --ink: #30343b;
+            --muted: #6d737d;
+            --line: #e2e5e9;
+            --page: #f8f9fc;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; color: var(--ink); background: var(--page); font-family: Arial, "Noto Sans KR", sans-serif; }
+        button, a { font: inherit; }
+        button { border: 0; background: none; cursor: pointer; }
+        .topbar {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            height: 64px;
+            padding: 0 24px;
+            background: var(--white);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .menu-button { margin-right: 22px; color: #555b62; font-size: 24px; line-height: 1; }
+        .site-title { display: flex; align-items: center; gap: 10px; font-size: 20px; }
+        .site-icon { display: grid; width: 24px; height: 24px; place-items: center; color: white; background: #65a34a; border-radius: 3px; font-size: 14px; }
+        .top-actions { display: flex; align-items: center; gap: 18px; margin-left: auto; color: #50555b; font-size: 24px; }
+        .profile { display: grid; width: 32px; height: 32px; place-items: center; background: #f2deda; border-radius: 50%; font-size: 14px; }
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            bottom: 0;
+            left: 0;
+            width: 272px;
+            overflow-y: auto;
+            padding: 8px 12px 24px;
+            background: var(--white);
+            border-right: 1px solid var(--line);
+        }
+
+        .nav-list {
+            margin-top: 8px;
+        }
+
+        .nav-link, .class-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-height: 44px;
+            padding: 0 14px;
+            color: var(--ink);
+            border-radius: 24px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .class-link:hover { background: #f1f4f9; }
+        .nav-link.active { color: #1f4f9d; background: var(--blue-soft); }
+        .nav-icon { width: 20px; text-align: center; font-size: 18px; }
+
+        .student-card {
+            margin: 4px 6px 12px;
+            padding: 16px 14px 12px;
+            background: linear-gradient(180deg, #f7fafe 0%, #eef4ff 100%);
+            border: 1px solid #dfeafc;
+            border-radius: 18px;
+            box-shadow: 0 8px 18px rgba(47, 111, 237, 0.06);
+        }
+
+        .student-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .student-avatar {
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--white);
+            background: linear-gradient(135deg, #2f6fed, #6ea8ff);
+            border-radius: 12px;
+        }
+
+        .student-name {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .student-status {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .student-info {
+            display: grid;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #dfeafc;
+            color: #2f3a45;
+            font-size: 12px;
+        }
+
+        .student-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .student-info-item strong {
+            min-width: 52px;
+            color: #5c6876;
+            font-weight: 600;
+        }
+
+        .section-label { display: flex; align-items: center; justify-content: space-between; margin: 26px 14px 8px; color: #5f656c; font-size: 13px; font-weight: bold; }
+        .class-link { gap: 12px;}
+        .class-dot { display: grid; width: 24px; height: 24px; flex: 0 0 auto; place-items: center; color: white; background: #d8914e; border-radius: 50%; font-size: 11px; }
+        .class-link:nth-of-type(2) .class-dot { background: #66a878; }
+        .class-link:nth-of-type(3) .class-dot { background: #5b83c2; }
+        .class-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .content { min-height: 100vh; margin-left: 272px; padding: 96px 32px 48px; }
+        .content-inner { max-width: 1100px; margin: auto; }
+        .page-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+        h1 { margin: 0; font-size: 25px; font-weight: 400; }
+        .expand-button { padding: 8px 12px; color: var(--blue); border-radius: 6px; }
+        .expand-button:hover { background: var(--blue-soft); }
+
+        .section { margin-bottom: 24px; padding: 18px 22px 22px; background: var(--white); border-radius: 24px; }
+        .section h2 { margin: 0 0 18px; font-size: 20px; font-weight: 400; }
+        .assignment { display: grid; grid-template-columns: 28px minmax(0, 1fr) 180px; align-items: center; gap: 18px; padding: 14px 4px; border-top: 1px solid var(--line); }
+        .assignment-icon { color: #626970; font-size: 20px; }
+        .assignment-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .assignment-course { color: var(--blue); font-size: 13px; }
+        .assignment-date { color: var(--muted); font-size: 13px; text-align: right; }
+
+        .course-grid { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 16px; }
+        .course-card { overflow: hidden; background: var(--white); border: 1px solid #d9dde2; border-radius: 12px; }
+        .course-cover { position: relative; min-height: 104px; padding: 16px; color: white; background: #647583; }
+        .course-card:nth-child(2) .course-cover { background: #a46c43; }
+        .course-card:nth-child(3) .course-cover { background: #60aa79; }
+        .course-card:nth-child(4) .course-cover { background: #4278b7; }
+        .course-cover h3 { margin: 0 0 8px; font-size: 20px; font-weight: 400; }
+        .course-cover p { margin: 0; font-size: 12px; opacity: .9; }
+        .course-avatar { position: absolute; right: 14px; bottom: -24px; display: grid; width: 58px; height: 58px; place-items: center; color: #5579d6; background: #dbe5ff; border-radius: 50%; font-size: 26px; }
+        .course-body { min-height: 110px; padding: 28px 16px 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+        .course-actions { display: flex; justify-content: flex-end; gap: 18px; padding: 12px 16px; border-top: 1px solid var(--line); color: #5d6369; font-size: 18px; }
+
+        @media (max-width: 950px) {
+            .sidebar { width: 220px; }
+            .content { margin-left: 220px; padding-right: 22px; padding-left: 22px; }
+            .course-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+        }
+
+        @media (max-width: 640px) {
+            .topbar { padding: 0 16px; }
+            .sidebar { position: static; width: auto; height: auto; padding-top: 80px; border-right: 0; }
+            .sidebar .class-link { display: none; }
+            .content { margin-left: 0; padding: 22px 14px 36px; }
+            .topbar { position: absolute; }
+            .assignment { grid-template-columns: 26px minmax(0, 1fr); }
+            .assignment-date { grid-column: 2; text-align: left; }
+            .course-grid { grid-template-columns: 1fr; }
+            .section { border-radius: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <button class="menu-button" aria-label="메뉴">☰</button>
+        <div class="site-title"><span class="site-icon">CR</span><span>클래스룸</span></div>
+        <div class="top-actions"><button aria-label="추가">＋</button><button aria-label="앱 메뉴">⠿</button><span class="profile">미</span></div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="student-card" aria-label="기본 인적사항">
+            <div class="student-card-header">
+                <div class="student-avatar">박</div>
+                <div>
+                    <p class="student-name">박주혁(수정가능)</p>
+                    <p class="student-status">고등학교 재학 중</p>
+                </div>
+            </div>
+            <div class="student-info">
+                <div class="student-info-item"><strong>학교</strong><span>미림마이스터고(수정가능)</span></div>
+                <div class="student-info-item"><strong>메일</strong><span>s2564@e-mirim.hs.kr(수정가능)</span></div>
+            </div>
+        </div>
+
+        <div class="nav-list">
+            <a class="nav-link active" href="#"><span class="nav-icon">⌂</span>홈</a>
+            <a class="nav-link" href="#"><span class="nav-icon">□</span>Calendar</a>
+            <a class="nav-link" href="#"><span class="nav-icon">✧</span>Gemini</a>
+        </div>
+
+        <div class="section-label"><span>등록한 수업</span><span>⌃</span></div>
+    </aside>
+
+    <main class="content">
+        <div class="content-inner">
+            <div class="page-heading"><h1>수업 학습 도구</h1><button class="expand-button">↗</button></div>
+
+            <section class="section">
+                <h2>수업</h2>
+                <div class="course-grid">
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
