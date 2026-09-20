@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 
-// ===============================
+// =============================== 
 // JSON 에러 응답
 function jsonError(res, status, message, detail = "") {
     return res.status(status).json({
