@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>미림마이스터고 출결</title>
+
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 14px;
+            margin: 6px 0;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        #cameraPage {
+            display: none;
+        }
+
+        video,
+        #photo {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #result {
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ========================= -->
+<!-- 출석 화면 -->
+<!-- ========================= -->
+
+<div id="attendancePage">
+
+    <h1>미림마이스터고 출결</h1>
+
+
+    <input
+        id="name"
+        type="text"
+        placeholder="이름을 입력하세요"
+    >
+
+
+    <button onclick="checkLocation()">
+        현재 위치 확인
+    </button>
+
+
+    <p id="location">
+        현재 위치: -
+    </p>
+
+
+    <p id="distance">
+        학교와의 거리: -
+    </p>
+
+
+    <button
+        id="attendanceBtn"
+        onclick="attendance()"
+        disabled
+    >
+        출석하기
+    </button>
+
+
+    <p id="result">
+        현재 위치를 확인해주세요.
+    </p>
+
+
+    <!-- 지도 -->
+    <div id="map"></div>
+
+</div>
+
+
+
+<!-- ========================= -->
+<!-- 카메라 화면 -->
+<!-- ========================= -->
+
+<div id="cameraPage">
+
+    <h1>출석 인증</h1>
+
+    <p>
+        카메라로 사진을 촬영해주세요.
+    </p>
+
+
+    <video
+        id="camera"
+        autoplay
+        playsinline>
+    </video>
+
+
+    <button onclick="takePhoto()">
+        사진 촬영
+    </button>
+
+
+    <canvas
+        id="canvas"
+        style="display:none;">
+    </canvas>
+
+
+    <img id="photo">
+
+
+    <button onclick="finish()">
+        인증 완료
+    </button>
+
+</div>
+
+
+
+<script>
+
+
+// ========================================
+// 기본 설정
+// ========================================
+
+// 학교 위치
+const SCHOOL = {
+    lat: 37.46646,
+    lng: 126.93289
+};
+
+// 출석 인정 범위
+const RADIUS = 100;
+
+
+// 현재 사용자 위치
+let currentPosition = null;
+
+// 지도
+let map;
+
+// 현재 위치 마커
+let currentMarker;
+
+// 카메라
+let stream = null;
+
+
+
+// ========================================
+// Google 지도 생성
+// ========================================
+
+function initMap() {
+
+    map = new google.maps.Map(
+        document.getElementById("map"),
+        {
+            center: SCHOOL,
+            zoom: 17
+        }
+    );
+
+
+    // 학교 위치 마커
+    new google.maps.Marker({
+        position: SCHOOL,
+        map: map,
+        title: "미림마이스터고"
+    });
+
+
+    // ⭐ 학교 기준 100m 원
+    new google.maps.Circle({
+
+        map: map,
+
+        center: SCHOOL,
+
+        radius: RADIUS,
+
+        fillOpacity: 0.15,
+
+        strokeWeight: 2
+
+    });
+
+}
+
+
+
+// ========================================
+// 현재 위치 확인
+// ========================================
+
+function checkLocation() {
+
+    if (!navigator.geolocation) {
+
+        document.getElementById("result").textContent =
+            "이 브라우저에서는 위치 기능을 사용할 수 없습니다.";
+
+        return;
+    }
+
+
+    document.getElementById("result").textContent =
+        "현재 위치를 확인하는 중...";
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        position => {
+
+            const lat =
+                position.coords.latitude;
+
+            const lng =
+                position.coords.longitude;
+
+
+            currentPosition = {
+                lat: lat,
+                lng: lng
+            };
+
+
+            document.getElementById("location").textContent =
+                `현재 위치: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+
+            // 기존 현재 위치 마커 삭제
+            if (currentMarker) {
+
+                currentMarker.setMap(null);
+
+            }
+
+
+            // 현재 위치 표시
+            currentMarker =
+                new google.maps.Marker({
+
+                    position: currentPosition,
+
+                    map: map,
+
+                    title: "현재 위치"
+
+                });
+
+
+            // 지도를 현재 위치로 이동
+            map.panTo(currentPosition);
+
+
+            document.getElementById("result").textContent =
+                "위치 확인 완료. 출석하기를 눌러주세요.";
+
+
+            document.getElementById("attendanceBtn").disabled =
+                false;
+
+        },
+
+
+        error => {
+
+            console.log(error);
+
+            document.getElementById("result").textContent =
+                "위치 권한을 허용해주세요.";
+
+        },
+
+
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+
+    );
+
+}
+
+
+
+// ========================================
+// 출석
+// ========================================
+
+async function attendance() {
+
+    const name =
+        document.getElementById("name").value.trim();
+
+
+    if (!name) {
+
+        document.getElementById("result").textContent =
+            "이름을 입력하세요.";
+
+        return;
+    }
+
+
+    if (!currentPosition) {
+
+        document.getElementById("result").textContent =
+            "먼저 현재 위치를 확인해주세요.";
+
+        return;
+    }
+
+
+    document.getElementById("result").textContent =
+        "출석 확인 중...";
+
+
+    try {
+
+        const response = await fetch(
+            "/api/attendance",
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    name: name,
+
+                    lat: currentPosition.lat,
+
+                    lng: currentPosition.lng
+
+                })
+
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        // 거리 표시
+        document.getElementById("distance").textContent =
+            `학교와의 거리: ${data.distance}m`;
+
+
+        // 100m 밖
+        if (!data.attendance) {
+
+            document.getElementById("result").textContent =
+                "❌ " + data.message;
+
+            return;
+        }
+
+
+        // 100m 이내 → 출석 성공
+        document.getElementById("result").textContent =
+            "✅ " + data.message;
+
+
+        // 출석 성공하면 카메라 화면으로 이동
+        openCamera();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("result").textContent =
+            "서버와 연결할 수 없습니다.";
+
+    }
+
+}
+
+
+
+// ========================================
+// 카메라 실행
+// ========================================
+
+async function openCamera() {
+
+    document.getElementById("attendancePage")
+        .style.display = "none";
+
+
+    document.getElementById("cameraPage")
+        .style.display = "block";
+
+
+    try {
+
+        stream =
+            await navigator.mediaDevices.getUserMedia({
+                video: true
+            });
+
+
+        document.getElementById("camera")
+            .srcObject = stream;
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("카메라 권한을 허용해주세요.");
+
+    }
+
+}
+
+
+
+// ========================================
+// 사진 촬영
+// ========================================
+
+function takePhoto() {
+
+    const video =
+        document.getElementById("camera");
+
+    const canvas =
+        document.getElementById("canvas");
+
+    const photo =
+        document.getElementById("photo");
+
+
+    canvas.width =
+        video.videoWidth;
+
+    canvas.height =
+        video.videoHeight;
+
+
+    canvas.getContext("2d")
+        .drawImage(
+            video,
+            0,
+            0
+        );
+
+
+    photo.src =
+        canvas.toDataURL("image/png");
+
+}
+
+
+
+// ========================================
+// 인증 완료
+// ========================================
+
+function finish() {
+
+    if (stream) {
+
+        stream
+            .getTracks()
+            .forEach(track => track.stop());
+
+    }
+
+
+    alert("출석 인증이 완료되었습니다.");
+
+}
+
+</script>
+
+
+
+<!-- Google Maps -->
+
+<script
+    async
+    src="https://maps.googleapis.com/maps/api/js?key=여기에_GOOGLE_API_KEY&callback=initMap">
+</script>
+
+</body>
+</html>
