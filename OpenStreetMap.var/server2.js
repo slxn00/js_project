@@ -5,11 +5,12 @@ const { exec } = require("child_process");
 const app = express();
 const PORT = 4000;
 
+//이게 미림마이스터고 위치
 const SCHOOL = {
     lat: 37.46646,
     lng: 126.93289
 };
- 
+
 const RADIUS = 100;
 
 app.use(express.json());
@@ -56,7 +57,7 @@ app.post("/api/attendance", (req, res) => {
         return res.json({
             attendance: false,
             distance: meters,
-            message: "학교에서 100m 밖에 있습니다."
+            message: `학교에서 ${RADIUS}m 밖에 있습니다.`
         });
     }
 
