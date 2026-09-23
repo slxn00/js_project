@@ -9,7 +9,7 @@ const SCHOOL = {
     lat: 37.46646,
     lng: 126.93289
 };
-
+ 
 const RADIUS = 100;
 
 app.use(express.json());
