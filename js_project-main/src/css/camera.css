@@ -1,0 +1,100 @@
+:root {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    color: #222;
+    background: #f2f2f2;
+    font-synthesis: none;
+    --camera-blue: #3182F6;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { font: inherit; cursor: pointer; }
+button:disabled { opacity: .4; cursor: default; }
+button:focus-visible, a:focus-visible { outline: 3px solid #767676; outline-offset: 4px; }
+[hidden] { display: none !important; }
+
+.camera-app {
+    width: min(100%, 480px);
+    height: 100vh;
+    height: 100dvh;
+    min-height: 360px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: calc(104px + env(safe-area-inset-top, 0px)) minmax(0, 1fr) calc(140px + env(safe-area-inset-bottom, 0px));
+    background: white;
+}
+
+.prompt-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: env(safe-area-inset-top, 0px) 20px 0;
+}
+
+.prompt-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    min-height: 56px;
+    padding: 9px 24px;
+    margin: 0;
+    background: var(--camera-blue);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+}
+
+.viewfinder {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    background: #d9d9d9;
+}
+
+.viewfinder video,
+.viewfinder img,
+.camera-placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.viewfinder video,
+.viewfinder img { object-fit: cover; }
+.camera-placeholder { background: #d9d9d9; }
+.live-badge { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 5px; background: #0006; color: white; font-size: 10px; letter-spacing: 1px; }
+.live-badge span { width: 5px; height: 5px; background: #fff; border-radius: 50%; }
+
+.camera-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: white;
+}
+
+.camera-status { margin: 0; max-width: 380px; font-size: 11px; line-height: 1.6; color: #777; text-align: center; overflow-wrap: anywhere; }
+.camera-status.error { color: #a14136; }
+
+.primary-button,
+.secondary-button { display: flex; align-items: center; justify-content: center; min-height: 46px; min-width: 148px; padding: 11px 20px; border: 0; border-radius: 9px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.primary-button { background: var(--camera-blue); color: white; }
+.secondary-button { background: #eee; color: #333; }
+.photo-actions { display: flex; justify-content: center; gap: 10px; width: 100%; }
+.photo-actions > * { flex: 1; min-width: 0; }
+
+.shutter-button { flex-shrink: 0; width: 62px; height: 62px; padding: 5px; border: 2px solid var(--camera-blue); background: white; border-radius: 50%; }
+.shutter-button span { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--camera-blue); }
+.shutter-button:active span { opacity: .75; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-height: 560px) { .camera-app { grid-template-rows: 80px minmax(0, 1fr) 118px; }.camera-controls { gap: 7px; padding: 8px 18px; } }

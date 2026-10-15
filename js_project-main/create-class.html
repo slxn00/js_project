@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>학급 생성하기</title>
+
+    <link rel="stylesheet" href="/src/css/create-class.css">
+    <script type="module" src="/src/js/create-class.js"></script>
+</head>
+
+<body>
+
+    <!-- 임시 메인 화면 배경 -->
+    <div class="background-app" aria-hidden="true">
+        <header class="fake-header">
+            <strong>CLASSROOM</strong>
+            <div class="fake-avatar"></div>
+        </header>
+
+        <div class="fake-content">
+            <div class="fake-sidebar"></div>
+            <div class="fake-main">
+                <div class="fake-line"></div>
+                <div class="fake-line short"></div>
+                <div class="fake-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 블러 처리된 배경 위 모달 -->
+    <div class="overlay">
+
+        <main class="modal">
+
+            <header class="modal-header">
+                <div class="title-icon">⌂</div>
+
+                <div class="title-area">
+                    <h1>학급 생성하기</h1>
+                    <p>학급과 학교 위치를 설정하여 인증할 수 있습니다.</p>
+                </div>
+
+                <button type="button" id="closeButton" class="close-button" aria-label="닫기">×</button>
+            </header>
+
+            <form id="classForm">
+
+                <div class="modal-grid">
+
+                    <!-- 왼쪽 입력 영역 -->
+                    <div class="form-column">
+
+                        <section class="form-section">
+                            <div class="section-title">
+                                <span class="step">1</span>
+                                <div>
+                                    <h2>클래스 정보</h2>
+                                    <p>클래스 이름을 입력해 주세요.</p>
+                                </div>
+                            </div>
+
+                            <label for="className">
+                                학급명 <span class="required">*</span>
+                            </label>
+
+                            <input id="className" maxlength="50" placeholder="ex ) 이번 학기에도 잘해보자 " required>
+                        </section>
+
+                        <section class="form-section">
+
+                            <div class="section-title">
+                                <span class="step">2</span>
+                                <div>
+                                    <h2>학교 검색</h2>
+                                    <p>학교 이름을 검색하고 정확한 장소를 선택하세요.</p>
+                                </div>
+                            </div>
+                            <label for="className">
+                                학교명 <span class="required">*</span>
+                            </label>
+
+                            <div class="search-row">
+                                <input id="schoolSearch" placeholder="학교 이름을 입력하세요" autocomplete="off">
+
+                                <button type="button" id="searchButton" class="search-button">
+                                    검색
+                                </button>
+                            </div>
+
+                            <p id="searchStatus" class="status-text" role="status" aria-live="polite">
+                                지도를 준비하고 있습니다.
+                            </p>
+
+                            <div id="schoolResults" class="school-results"></div>
+
+                            <div id="selectedSchool" class="selected-school" hidden>
+                                <span class="pin-icon">⌖</span>
+
+                                <div class="selected-info">
+                                    <strong id="selectedSchoolName"></strong>
+                                    <span id="selectedSchoolAddress"></span>
+                                </div>
+
+                                <button type="button" id="changeSchool" class="change-button">변경</button>
+                            </div>
+
+                        </section>
+
+                        <section class="form-section">
+
+                            <div class="section-title">
+                                <span class="step">3</span>
+
+                                <div>
+                                    <h2>인증 반경 설정</h2>
+                                    <p>선택한 학교를 기준으로 인증 범위를 설정하세요.</p>
+                                </div>
+                            </div>
+
+                            <div class="radius-heading">
+                                <label for="radius">인증 반경</label>
+                                <strong>
+                                    <span id="radiusValue">100</span>m
+                                </strong>
+                            </div>
+
+                            <input id="radius" type="range" min="50" max="500" step="10" value="100">
+
+                            <div class="range-labels">
+                                <span>50m</span>
+                                <span>500m</span>
+                            </div>
+
+                            <div class="info-note">
+                                ⓘ 반경을 조절하면 지도에 표시된 원도 변경됩니다.
+                            </div>
+
+                        </section>
+
+                        <button id="createButton" type="submit" class="create-button" disabled>
+                            학급 생성하기 →
+                        </button>
+
+                        <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
+
+                    </div>
+
+                    <!-- 오른쪽 지도 영역 -->
+                    <section class="map-column">
+
+                        <div class="map-heading">
+                            <span class="map-pin">⌖</span>
+
+                            <div>
+                                <h2>학교 위치 및 인증 반경</h2>
+                                <p>지도에서 위치와 인증 범위를 확인하세요.</p>
+                            </div>
+                        </div>
+
+                        <div class="map-frame">
+
+                            <div id="map">
+                                <div class="map-placeholder">
+                                    <span>⌖</span>
+                                    <strong>학교를 검색해 주세요</strong>
+                                    <p>학교를 선택하면 실제 지도가 표시됩니다.</p>
+                                </div>
+                            </div>
+
+                            <div class="map-legend">
+                                <span class="legend-dot"></span>
+                                선택한 학교
+
+                                <span class="legend-circle"></span>
+                                인증 가능 범위
+                            </div>
+
+                        </div>
+
+                        <div class="location-summary">
+
+                            <span class="summary-pin">⌖</span>
+
+                            <div class="summary-address">
+                                <small>선택한 학교</small>
+                                <strong id="summaryName">아직 선택하지 않았어요</strong>
+                                <p id="summaryAddress">
+                                    학교를 검색한 후 선택해 주세요.
+                                </p>
+                            </div>
+
+                            <div class="summary-radius">
+                                <div>
+                                    <small>설정된 반경</small>
+                                    <strong>
+                                        <span id="summaryRadius">100</span>m
+                                    </strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <p class="map-footnote">
+                            파란 원은 선택한 학교 위치를 중심으로 설정된 거리입니다.
+                        </p>
+
+                    </section>
+
+                </div>
+
+            </form>
+        </main>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 import '../css/style.css'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './supabaseClient.js'
+import { showAuthStatus, bindSocialAuth } from './auth-ui.js'
+import { getAuthCallbackError } from './auth-callback.js'
 
-// Supabase 클라이언트 설정
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+const callbackError = getAuthCallbackError()
+if (callbackError) showAuthStatus(callbackError)
 
 // DOM 요소
 const loginForm = document.querySelector('#login-form')
@@ -13,6 +13,7 @@ const passwordInput = document.querySelector('#password')
 const googleBtn = document.querySelector('#google-login-btn')
 const kakaoBtn = document.querySelector('#kakao-login-btn')
 const eyeBtns = document.querySelectorAll('.eye-btn')
+const loginBtn = document.querySelector('#login-btn')
 
     // 사용자가 다시 입력하기 시작하면 빨간색 에러 테두리 제거
     ;[emailInput, passwordInput].forEach(input => {
@@ -36,6 +37,8 @@ eyeBtns.forEach(btn => {
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault()
+        if (loginBtn.disabled) return
+        showAuthStatus('')
 
         // 기존 에러 표시 초기화
         emailInput.classList.remove('error')
@@ -56,41 +59,28 @@ if (loginForm) {
             hasError = true
         }
 
-        if (hasError) return
+        if (hasError) {
+            showAuthStatus('이메일과 비밀번호를 입력해 주세요.')
+            return
+        }
 
         // Supabase 로그인 요청
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
-
-        if (error) {
-            // 로그인 실패 시(정보 불일치 등) 입력창 빨간색으로 변경
+        loginBtn.disabled = true
+        loginBtn.textContent = '로그인 중...'
+        try {
+            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            if (error) throw error
+            window.location.href = '/main.html'
+        } catch (error) {
             emailInput.classList.add('error')
             passwordInput.classList.add('error')
-        } else {
-            // 로그인 성공 시 메인 페이지 이동
-            window.location.href = '/index.html'
+            showAuthStatus(error)
+        } finally {
+            loginBtn.disabled = false
+            loginBtn.textContent = '로그인'
         }
     })
 }
 
-// 3. Google 소셜 로그인
-if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-        await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.origin + '/index.html' }
-        })
-    })
-}
-
-// 4. 카카오 소셜 로그인
-if (kakaoBtn) {
-    kakaoBtn.addEventListener('click', async () => {
-        await supabase.auth.signInWithOAuth({
-            provider: 'kakao',
-            options: { redirectTo: window.location.origin + '/index.html' }
-        })
-    })
-}
+bindSocialAuth(googleBtn, 'google', '/main.html')
+bindSocialAuth(kakaoBtn, 'kakao', '/main.html')

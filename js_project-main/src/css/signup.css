@@ -226,3 +226,49 @@ body {
 .login-link:hover {
     text-decoration: underline;
 }
+
+
+/* ===== 회원가입 화면 크기 개선 ===== */
+
+.signup-card,
+.auth-card,
+.signup-box {
+    width: 100%;
+    max-width: 500px;
+    padding: 36px;
+    border-radius: 20px;
+}
+
+/* 입력창 */
+.signup-card input,
+.auth-card input,
+.signup-box input {
+    min-height: 52px;
+    font-size: 15px;
+    border-radius: 11px;
+}
+
+/* 버튼 */
+.signup-card button,
+.auth-card button,
+.signup-box button {
+    min-height: 48px;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+.signup-card button[type="submit"],
+.auth-card button[type="submit"],
+.signup-box button[type="submit"] {
+    min-height: 52px;
+}
+
+@media (max-width: 600px) {
+
+    .signup-card,
+    .auth-card,
+    .signup-box {
+        max-width: 100%;
+        padding: 25px 20px;
+    }
+}

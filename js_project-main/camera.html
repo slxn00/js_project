@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>제시어 사진 촬영</title>
+    <link rel="stylesheet" href="/src/css/camera.css" />
+    <script type="module" src="/src/js/classroom-camera.js"></script>
+</head>
+<body>
+    <main class="camera-app">
+        <header class="prompt-area">
+            <h1 class="sr-only">랜덤 제시어 사진 촬영</h1>
+            <p id="promptLabel" class="prompt-chip" aria-label="촬영 제시어" aria-live="polite">제시어</p>
+            <p id="promptHint" class="sr-only"></p>
+        </header>
+
+        <section id="viewfinder" class="viewfinder" aria-label="제시어 촬영 카메라">
+            <video id="camera" autoplay playsinline muted aria-describedby="promptHint" hidden></video>
+            <img id="photoPreview" alt="방금 촬영한 제시어 사진" hidden />
+            <div id="cameraPlaceholder" class="camera-placeholder" aria-hidden="true"></div>
+            <span id="liveBadge" class="live-badge" hidden><span></span> LIVE</span>
+        </section>
+
+        <footer class="camera-controls">
+            <p id="cameraStatus" class="camera-status" role="status" aria-live="polite">카메라를 켜면 촬영 권한을 요청해요.</p>
+            <button id="startCamera" class="primary-button" type="button">카메라 켜기</button>
+            <button id="takePhoto" class="shutter-button" type="button" aria-label="사진 촬영하기" hidden disabled><span aria-hidden="true"></span></button>
+            <div id="photoActions" class="photo-actions" hidden>
+                <button id="retakePhoto" class="secondary-button" type="button">다시 찍기</button>
+                <a id="savePhoto" class="primary-button" download>사진 저장</a>
+            </div>
+        </footer>
+    </main>
+</body>
+</html>

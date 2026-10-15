@@ -1,0 +1,59 @@
+/* ===== 로그인 화면 크기 개선 ===== */
+
+/* 로그인 카드 */
+.login-card,
+.auth-card,
+.login-box {
+    width: 100%;
+    max-width: 480px;
+    padding: 36px;
+    border-radius: 20px;
+}
+
+/* 제목 */
+.login-title,
+.auth-title {
+    font-size: 34px;
+    font-weight: 800;
+}
+
+/* 입력창 */
+.login-card input,
+.auth-card input,
+.login-box input {
+    min-height: 52px;
+    font-size: 15px;
+    border-radius: 11px;
+}
+
+/* 버튼 */
+.login-card button,
+.auth-card button,
+.login-box button {
+    min-height: 48px;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+/* 주요 로그인 버튼 */
+.login-card button[type="submit"],
+.auth-card button[type="submit"],
+.login-box button[type="submit"] {
+    min-height: 52px;
+}
+
+/* 모바일 */
+@media (max-width: 600px) {
+
+    .login-card,
+    .auth-card,
+    .login-box {
+        max-width: 100%;
+        padding: 25px 20px;
+    }
+
+    .login-title,
+    .auth-title {
+        font-size: 28px;
+    }
+}

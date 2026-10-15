@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>등교 체크인</title>
+
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body>
+  <p role="status">로그인 상태를 확인하고 있습니다.</p>
+  <script type="module">
+    import { supabase } from '/src/js/supabaseClient.js'
+    import { redirectAuthCallbackError } from '/src/js/auth-callback.js'
+    try {
+      if (!redirectAuthCallbackError()) {
+        const { data, error } = await supabase.auth.getSession()
+        window.location.replace(!error && data.session ? '/main.html' : '/login.html')
+      }
+    } catch {
+      window.location.replace('/login.html')
+    }
+  </script>
+  <noscript><a href="/login.html">로그인 화면으로 이동</a></noscript>
+</body>
+
+</html>

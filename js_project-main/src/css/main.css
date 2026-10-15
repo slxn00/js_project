@@ -1,0 +1,465 @@
+:root {
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+    color: #17233d;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+}
+
+.app {
+    min-height: 100vh;
+    background: #f8f9fb;
+}
+
+
+
+/* 메인 레이아웃 */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* 왼쪽 메인 영역 */
+.main-content {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+    background: #f8f9fb;
+}
+
+/* 오른쪽 교사용 패널 */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 clamp(310px, 22vw, 380px);
+
+    min-height: 100vh;
+    overflow: hidden;
+
+    border-left: 1px solid #e6e8ed;
+    border-radius: 18px 0 0 0;
+    background: white;
+}
+
+
+/* 프로필 헤더 */
+.sidebar-header {
+    background: #347df1;
+    color: white;
+}
+
+.profile-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 88px;
+    padding: 14px 15px;
+}
+
+.profile-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: white;
+    color: #347df1;
+}
+
+.profile-avatar svg {
+    width: 27px;
+    height: 27px;
+}
+
+.profile-details {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.profile-details strong {
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-details span {
+    color: #e5efff;
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.account-role { align-self: flex-start; padding: 3px 7px; border-radius: 5px; background: #ffffff26; color: white; font-size: 10px; }
+.tab[hidden] { display: none; }
+
+.settings-button {
+    flex-shrink: 0;
+    padding: 7px;
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 19px;
+}
+
+/* 클래스 / 멤버 / 게시판 */
+.tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 35px;
+    background: #286edc;
+}
+
+.tab {
+    padding: 0 6px;
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tab:hover {
+    background: #ffffff19;
+}
+
+.tab.active {
+    border-radius: 8px 8px 0 0;
+    background: white;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+/* 사이드바 내용 */
+.sidebar-body {
+    flex: 1;
+    background: white;
+}
+
+.tab-panel {
+    width: 100%;
+    height: 100%;
+}
+
+.tab-panel[hidden] {
+    display: none;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 72px 12px 0;
+    text-align: center;
+}
+
+.empty-state p {
+    margin: 0;
+    color: #777777;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.create-class-button {
+    width: 100%;
+    margin-top: 78px;
+    padding: 12px;
+    border: 0;
+    border-radius: 4px;
+    background: #347df1;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.create-class-button:hover {
+    background: #256ce1;
+}
+
+/* 설정 모달 */
+.settings-overlay {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: #17243b55;
+    backdrop-filter: blur(5px);
+}
+
+.settings-overlay[hidden] {
+    display: none;
+}
+
+.settings-card {
+    width: min(380px, 100%);
+    padding: 24px;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 20px 50px #00000020;
+}
+
+.settings-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-heading h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.settings-heading button {
+    border: 0;
+    background: transparent;
+    font-size: 27px;
+}
+
+#accountEmail {
+    margin: 20px 0;
+    color: #687386;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+#logoutButton {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #efc7cc;
+    border-radius: 7px;
+    background: #fff5f5;
+    color: #d94d60;
+}
+
+#settingsStatus {
+    font-size: 12px;
+    color: #d94d60;
+}
+
+/* 좁은 화면 대응 */
+@media (max-width: 700px) {
+    .top-bar {
+        height: 35px;
+    }
+
+    .app-layout {
+        flex-direction: column;
+        min-height: calc(100vh - 35px);
+    }
+
+    .main-content {
+        display: none;
+    }
+
+    .sidebar {
+        flex: 1;
+        width: 100%;
+        min-height: calc(100vh - 35px);
+        border-radius: 0;
+        border-left: 0;
+    }
+}
+
+/* 학급 생성 모달 배경 */
+.class-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(24, 36, 58, 0.38);
+
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+}
+
+.class-modal-overlay[hidden] {
+    display: none;
+}
+
+/* 기존 학급 생성 화면 표시 */
+#createClassFrame {
+    display: block;
+    width: 100%;
+    height: 100dvh;
+    border: none;
+    background: transparent;
+}
+
+/* 실제 메인화면 위에 학급 생성창 표시 */
+.class-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 뒤쪽 메인화면을 어둡고 흐릿하게 */
+    background: rgba(24, 36, 58, 0.35);
+
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+}
+
+.class-modal-overlay[hidden] {
+    display: none !important;
+}
+
+/* 학급 생성 페이지를 투명하게 표시 */
+#createClassFrame {
+    display: block;
+    width: 100%;
+    height: 100dvh;
+
+    border: none;
+    background: transparent !important;
+}
+
+/* 생성된 학급 목록 */
+.class-section-title { margin: 24px 16px 0; font-size: 17px; }
+.class-list-status { margin: 18px 16px; color: #7b879d; font-size: 12px; line-height: 1.7; }
+.class-list-status[hidden] { display: none; }
+.created-classes {
+    display: grid;
+    gap: 12px;
+    padding: 20px 12px 0;
+}
+
+.created-class-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid #e0e8f5;
+    border-radius: 12px;
+    background: #f8faff;
+}
+
+.created-class-card h3 {
+    margin: 0;
+    color: #17233d;
+    font-size: 15px;
+}
+
+.created-class-card p {
+    margin: 0 0 8px;
+    color: #7b879d;
+    font-size: 12px;
+}
+
+.created-class-card span {
+    color: #8b96a8;
+    font-size: 11px;
+}
+
+.class-code {
+    color: #17233d;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+.created-class-card small {
+    color: #7b879d;
+    font-size: 11px;
+    text-align: center;
+}
+
+.sidebar-body>.tab-panel>.create-class-button {
+    display: block;
+    width: calc(100% - 24px);
+    margin: 16px auto;
+}
+
+.sidebar-actions { margin-top: auto; padding: 16px 12px; border-top: 1px solid #f0f2f6; }
+.join-class-button { width: 100%; min-height: 44px; padding: 12px; border: 0; border-radius: 7px; background: #3182F6; color: white; font-size: 13px; font-weight: 600; }
+.join-class-button:hover, .join-submit:hover { background: #2473e6; }
+.join-class-summary { margin: 12px 0 0; color: #687386; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.join-class-summary.is-error { color: #cf5050; }
+.join-class-button:disabled { opacity: .6; cursor: wait; }
+
+.join-class-dialog { position: fixed; width: min(284px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: 32px 30px 30px; border: 1px solid #e6e8ed; border-radius: 16px; background: #fff; color: #1e293b; box-shadow: 0 14px 32px #17233d16, 0 2px 5px #17233d08; }
+.join-class-dialog::backdrop { background: #17243b44; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.join-close { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; color: #a0a8b5; font-size: 22px; }
+.join-name-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.join-name-input { display: block; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #e6e8ef; border-radius: 12px; background: #f8f9fb; color: #1e293b; font: inherit; font-size: 16px; outline: none; }
+.join-name-input::placeholder { color: #9aa3b2; font-size: 13px; }
+.join-code-group { min-width: 0; margin: 34px 0 0; padding: 0; border: 0; }
+.join-code-group legend { width: 100%; margin-bottom: 18px; padding: 0; text-align: center; font-size: 14px; font-weight: 700; }
+.join-code-inputs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.join-code-digit { width: 100%; min-width: 0; height: 50px; padding: 0; border: 1px solid #e6e8ef; border-radius: 12px; background: #f8f9fb; color: #1e293b; font: inherit; font-size: 19px; font-weight: 600; text-align: center; text-transform: uppercase; outline: none; }
+.join-name-input:focus, .join-code-digit:focus { border-color: #3182F6; box-shadow: 0 0 0 2px #3182F615; }
+.join-class-dialog [aria-invalid="true"] { border-color: #df6a6a; }
+.join-class-status { min-height: 18px; margin: 15px 0 16px; color: #cf5050; font-size: 11px; line-height: 1.6; }
+.join-submit { display: block; width: 100%; min-height: 50px; border: 0; border-radius: 10px; background: #3182F6; color: white; font-size: 15px; font-weight: 700; box-shadow: 0 6px 14px #3182F625; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.join-submit:disabled { opacity: .6; cursor: wait; }
+.members-view { padding: 22px 16px; }
+.members-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.members-heading h2 { margin: 0; font-size: 17px; }
+.members-heading > span { padding: 5px 9px; border-radius: 20px; background: #edf4ff; color: #3182F6; font-size: 12px; font-weight: 600; }
+.refresh-members { display: block; margin: 12px 0 0 auto; padding: 6px 0 6px 10px; border: 0; background: transparent; color: #3182F6; font-size: 12px; }
+.refresh-members:disabled { color: #9aa7bb; cursor: wait; }
+.members-status { margin: 18px 0; color: #7b879d; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.members-list { margin: 0; padding: 0; list-style: none; }
+.member-row { display: flex; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid #edf0f5; }
+.member-avatar { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; background: #edf4ff; color: #3182F6; font-size: 15px; font-weight: 700; }
+.member-row > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.member-row > div:not(.member-actions) { flex: 1; }
+.member-actions { position: relative; flex-shrink: 0; margin-left: auto; }
+.member-menu-toggle { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 10px; color: #8b96a8; cursor: pointer; list-style: none; transition: background .15s, color .15s; }
+.member-menu-toggle::-webkit-details-marker { display: none; }
+.member-menu-toggle:hover, .member-actions[open] > .member-menu-toggle { background: #edf4ff; color: #3182F6; }
+.member-menu-toggle:focus-visible { outline: 2px solid #3182F6; outline-offset: 2px; }
+.member-menu { position: absolute; z-index: 10; top: calc(100% + 4px); right: 0; width: 156px; padding: 6px; border: 1px solid #e9edf4; border-radius: 12px; background: white; box-shadow: 0 8px 28px #17233d14, 0 2px 6px #17233d08; }
+.member-actions:not([open]) > .member-menu { display: none; }
+.member-menu button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 10px; border: 0; border-radius: 7px; background: transparent; color: #334155; font-size: 12px; text-align: left; }
+.member-menu button svg { flex-shrink: 0; width: 17px; height: 17px; }
+.member-menu button:hover, .member-menu button:focus-visible { outline: none; background: #f3f7ff; color: #3182F6; }
+.member-menu .remove-member-button { margin-top: 3px; color: #d64e4e; }
+.member-menu .remove-member-button:hover, .member-menu .remove-member-button:focus-visible { background: #fff1f1; color: #c74747; }
+.delete-class-button { padding: 6px 8px; border: 0; border-radius: 5px; background: #fff0f0; color: #c74747; font-size: 11px; }
+.delete-class-button { align-self: flex-end; margin-top: 8px; }
+.member-row strong { color: #17233d; font-size: 14px; overflow-wrap: anywhere; }
+.member-row small { color: #8b96a8; font-size: 11px; }
+.classroom-manage-dialog { width: min(360px, calc(100vw - 32px)); padding: 24px; border: 1px solid #e6e8ed; border-radius: 16px; color: #17233d; box-shadow: 0 16px 50px #17233d22; }
+.classroom-manage-dialog::backdrop { background: #17243b55; backdrop-filter: blur(5px); }
+.classroom-manage-dialog h2 { margin: 0 0 12px; font-size: 19px; }
+.classroom-manage-dialog p { color: #687386; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.classroom-manage-dialog [data-name-group][hidden] { display: none; }
+.classroom-manage-dialog label { display: block; margin: 20px 0 8px; font-size: 13px; font-weight: 600; }
+.classroom-manage-dialog input { width: 100%; padding: 12px; border: 1px solid #dce3ee; border-radius: 8px; font: inherit; font-size: 16px; }
+.classroom-manage-dialog .management-status { min-height: 20px; color: #c74747; }
+.management-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.management-buttons button { padding: 10px 16px; border: 0; border-radius: 8px; background: #f1f3f7; color: #687386; font-size: 13px; }
+.management-buttons [type="submit"] { background: #3182F6; color: white; }
+.management-buttons .danger-button { background: #d64e4e; }
+.management-buttons button:disabled { opacity: .6; cursor: wait; }
