@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>학생 · 내 클래스</title>
+  <link rel="stylesheet" href="/src/css/student.css" />
+  <script type="module" src="/src/js/student.js"></script>
+</head>
+<body>
+  <div class="student-app">
+    <header class="student-header">
+      <div class="profile">
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4 3-7 7.5-7s7.5 3 7.5 7"/></svg>
+        </div>
+        <div class="profile-text">
+          <strong id="studentName">사용자 확인 중...</strong>
+          <span id="studentEmail"></span>
+          <small>학생</small>
+        </div>
+        <button type="button" id="studentLogout" class="header-button">로그아웃</button>
+      </div>
+      <div class="header-bottom"><span>내 클래스</span><span>오늘도 좋은 하루 보내요!</span></div>
+    </header>
+
+    <main class="student-main">
+      <section class="greeting">
+        <span class="eyebrow">MY CLASSROOM</span>
+        <h1>학교 생활, 여기에서 시작해요.</h1>
+        <p id="todayDate">오늘의 학급 정보를 확인해 보세요.</p>
+      </section>
+
+      <section class="student-section" aria-labelledby="myClassHeading">
+        <div class="section-heading"><h2 id="myClassHeading">내 클래스</h2><span class="tag">학급 정보</span></div>
+        <div id="studentClassCard" class="class-card">
+          <p class="loading">학급 정보를 불러오는 중...</p>
+        </div>
+      </section>
+
+      <section class="student-section" aria-labelledby="scheduleHeading">
+        <div class="section-heading"><h2 id="scheduleHeading">학사일정</h2><span class="muted-small">이번 달</span></div>
+        <div class="info-card">
+          <div class="info-symbol" aria-hidden="true">📅</div>
+          <div><strong>등록된 학사일정이 아직 없어요.</strong><p>관리자 일정 등록 기능이나 학교 학사일정 API를 연결하면 이곳에 표시돼요.</p></div>
+        </div>
+      </section>
+
+      <section class="student-section" aria-labelledby="noticeHeading">
+        <div class="section-heading"><h2 id="noticeHeading">학급 공지사항</h2></div>
+        <div class="info-card">
+          <div class="info-symbol" aria-hidden="true">📣</div>
+          <div><strong>공지사항 준비 중</strong><p>관리자가 게시글을 작성하면 이곳에서 확인할 수 있어요.</p></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="student-actions">
+      <button type="button" id="studentAction" class="primary-button" disabled>확인 중...</button>
+      <p id="studentStatus" class="student-status" role="status" aria-live="polite"></p>
+    </footer>
+  </div>
+
+  <dialog id="studentJoinDialog" class="join-dialog" aria-labelledby="joinTitle">
+    <form id="studentJoinForm" novalidate>
+      <div class="dialog-heading">
+        <div class="join-title-group"><span class="join-icon" aria-hidden="true">⌁</span><div><h2 id="joinTitle">학급 입장하기</h2><p>선생님께 받은 학급코드를 입력해 주세요.</p></div></div>
+        <button type="button" id="closeJoinDialog" aria-label="닫기">×</button>
+      </div>
+      <label for="studentJoinName">이름 <span class="required">*</span></label>
+      <input id="studentJoinName" name="name" maxlength="50" placeholder="학생 이름을 입력해 주세요" autocomplete="name" required />
+      <label for="studentJoinCode0">학급코드 <span class="required">*</span></label>
+      <div class="join-code-inputs" aria-label="영문과 숫자로 된 학급코드 다섯 자리">
+        <input id="studentJoinCode0" class="join-code-digit" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" aria-label="학급코드 첫 번째 자리" required />
+        <input class="join-code-digit" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" aria-label="학급코드 두 번째 자리" required />
+        <input class="join-code-digit" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" aria-label="학급코드 세 번째 자리" required />
+        <input class="join-code-digit" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" aria-label="학급코드 네 번째 자리" required />
+        <input class="join-code-digit" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" aria-label="학급코드 다섯 번째 자리" required />
+      </div>
+      <p class="join-hint">영어 대·소문자와 숫자만 입력할 수 있어요. 소문자는 자동으로 대문자로 바뀝니다.</p>
+      <p id="joinError" class="form-error" role="status" aria-live="polite"></p>
+      <button type="submit" id="joinSubmit" class="primary-button">학급 입장하기</button>
+    </form>
+  </dialog>
+</body>
+</html>

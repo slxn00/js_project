@@ -1,164 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>내 클래스</title>
-
-    <link rel="stylesheet" href="/src/css/main.css">
-    <script type="module" src="/src/js/main.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학급 시작하기</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:#f3f6fc;color:#17233d;padding:20px}
+    main{width:min(440px,100%);border-radius:22px;background:white;padding:28px;box-shadow:0 16px 45px #1c366318}
+    .mark{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:15px;background:#eaf1ff;color:#347df1;font-size:24px}h1{margin:16px 0 8px;font-size:24px}p{line-height:1.65;color:#687991;font-size:14px}nav{display:grid;gap:10px;margin-top:24px}a{display:block;text-align:center;text-decoration:none;background:#347df1;color:white;border-radius:12px;padding:14px;font-weight:700}a:last-child{background:#eff4ff;color:#246be0}#routeMessage{margin-top:20px;font-size:13px}
+  </style>
+  <script type="module" src="/src/js/main.js"></script>
 </head>
-
-<!-- 학급 생성 모달 -->
-<div id="createClassModal" class="class-modal-overlay" hidden>
-    <iframe id="createClassFrame" title="학급 생성하기" src="about:blank"></iframe>
-</div>
-
 <body>
-
-    <div class="app">
-
-        <div class="app-layout">
-
-            <!-- 왼쪽: 추후 공지사항 및 인증 현황 -->
-            <main class="main-content" aria-label="학급 메인 콘텐츠">
-            </main>
-
-            <!-- 오른쪽: 교사용 패널 -->
-            <aside class="sidebar">
-
-                <header class="sidebar-header">
-
-                    <div class="profile-row">
-                        <div class="profile-avatar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                                <circle cx="12" cy="8" r="4"></circle>
-                                <path d="M4.5 21c0-4 3-7 7.5-7s7.5 3 7.5 7">
-                                </path>
-                            </svg>
-                        </div>
-
-                        <div class="profile-details">
-                            <strong id="teacherName">teacher</strong>
-                            <span id="teacherEmail">계정 확인 중...</span>
-                            <small id="accountRole" class="account-role">학급 확인 중</small>
-                        </div>
-
-                        <button type="button" id="settingsButton" class="settings-button" aria-label="설정">
-                            ⚙
-                        </button>
-                    </div>
-
-                    <!-- 사이드바 탭 -->
-                    <nav class="tabs" aria-label="학급 메뉴">
-
-                        <button type="button" class="tab active" data-tab="classes" aria-pressed="true">
-                            내 클래스
-                        </button>
-
-                        <button type="button" class="tab" data-tab="members" aria-pressed="false" hidden>
-                            멤버
-                        </button>
-
-                        <button type="button" class="tab" data-tab="board">
-                            게시판
-                        </button>
-
-                    </nav>
-                </header>
-
-                <!-- 탭별 내용 -->
-                <div class="sidebar-body">
-
-                    <section id="membersPanel" class="tab-panel" hidden>
-                        <div class="empty-state">
-                            <p>학급 정보를 불러오고 있어요.</p>
-                        </div>
-                    </section>
-
-                    <section id="classesPanel" class="tab-panel">
-                        <div class="empty-state">
-                            <p>학급 정보를 불러오고 있어요.</p>
-                        </div>
-                    </section>
-
-                    <section id="boardPanel" class="tab-panel" hidden>
-                        <div class="empty-state">
-                            <p>게시판은 추후 추가될 예정입니다.</p>
-                        </div>
-                    </section>
-
-                </div>
-
-                <div class="sidebar-actions">
-                    <button type="button" id="joinClassButton" class="join-class-button" aria-haspopup="dialog" disabled>학급 입장</button>
-                    <p id="joinClassSummary" class="join-class-summary" role="status" hidden></p>
-                </div>
-
-            </aside>
-
-        </div>
-    </div>
-
-    <dialog id="joinClassDialog" class="join-class-dialog" aria-labelledby="joinClassTitle">
-        <button type="button" id="closeJoinClass" class="join-close" aria-label="학급 입장 닫기">×</button>
-        <h2 id="joinClassTitle" class="visually-hidden">학급 입장</h2>
-        <form id="joinClassForm" novalidate>
-            <label class="join-name-label" for="joinName">성함</label>
-            <input id="joinName" class="join-name-input" name="studentName" placeholder="김길동" autocomplete="name" maxlength="50" required />
-
-            <fieldset class="join-code-group">
-                <legend>학급코드</legend>
-                <div class="join-code-inputs">
-                    <input class="join-code-digit" aria-label="학급코드 첫 번째 자리" name="code1" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 두 번째 자리" name="code2" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 세 번째 자리" name="code3" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 네 번째 자리" name="code4" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 다섯 번째 자리" name="code5" maxlength="1" autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                </div>
-            </fieldset>
-
-            <p id="joinClassStatus" class="join-class-status" role="status" aria-live="polite"></p>
-            <button type="submit" class="join-submit">입장</button>
-        </form>
-    </dialog>
-
-    <dialog id="classroomManageDialog" class="classroom-manage-dialog" aria-labelledby="classroomManageTitle">
-        <form novalidate>
-            <h2 id="classroomManageTitle" data-title></h2>
-            <p data-description></p>
-            <div data-name-group hidden>
-                <label for="memberNameInput">학생 이름</label>
-                <input id="memberNameInput" maxlength="50" autocomplete="off" />
-            </div>
-            <p class="management-status" role="status" aria-live="polite"></p>
-            <div class="management-buttons">
-                <button type="button" data-cancel>취소</button>
-                <button type="submit"></button>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- 설정 모달 -->
-    <div id="settingsModal" class="settings-overlay" hidden>
-        <section class="settings-card">
-            <div class="settings-heading">
-                <h2>계정 설정</h2>
-                <button type="button" id="closeSettings" aria-label="설정 닫기">×</button>
-            </div>
-
-            <p id="accountEmail"></p>
-
-            <button type="button" id="logoutButton">
-                로그아웃
-            </button>
-
-            <p id="settingsStatus" role="status"></p>
-        </section>
-    </div>
-
+  <main>
+    <span class="mark" aria-hidden="true">⌂</span>
+    <h1>우리 학급 시작하기</h1>
+    <p>이미 받은 학급코드가 있나요? 코드로 학급에 들어가거나 직접 학급을 만들 수 있어요.</p>
+    <p id="routeMessage" role="status" aria-live="polite">학급 정보를 불러오는 중...</p>
+    <nav id="routeChoices" hidden>
+      <a href="/student.html">이미 받은 학급코드가 있어요!</a>
+      <a href="/admin.html">아뇨, 저는 학급을 생성해야 해요!</a>
+    </nav>
+  </main>
 </body>
-
 </html>

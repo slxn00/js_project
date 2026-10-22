@@ -11,7 +11,7 @@ let submitting = false
 
 function clearError() {
     status.textContent = ''
-    ;[nameInput, ...digits].forEach(input => input.removeAttribute('aria-invalid'))
+        ;[nameInput, ...digits].forEach(input => input.removeAttribute('aria-invalid'))
 }
 
 function fillCode(value, startIndex) {
@@ -19,20 +19,126 @@ function fillCode(value, startIndex) {
     if (!code) return
     const start = code.length >= digits.length ? 0 : startIndex
     const characters = code.slice(0, digits.length - start)
-    ;[...characters].forEach((character, index) => { digits[start + index].value = character })
+        ;[...characters].forEach((character, index) => { digits[start + index].value = character })
     digits[Math.min(start + characters.length, digits.length - 1)].focus()
 }
 
-openButton.addEventListener('click', () => {
-    if (openButton.dataset.hasClass === 'true') {
-        summary.textContent = '학급이 있으면 안됩니다'
-        summary.classList.add('is-error')
-        summary.hidden = false
-        return
+let verifyingLocation = false;
+
+function getCurrentLocation() {
+    return new Promise((resolve, reject) => {
+        if (!window.isSecureContext || !navigator.geolocation) {
+            reject(new Error(
+                "위치 확인은 HTTPS 또는 localhost에서 사용할 수 있어요."
+            ));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve(position.coords),
+            (error) => {
+                const messages = {
+                    1: "위치 권한을 허용해 주세요.",
+                    2: "현재 위치를 찾을 수 없어요.",
+                    3: "위치 확인 시간이 초과됐어요.",
+                };
+
+                reject(new Error(
+                    messages[error.code] || "GPS 위치 확인에 실패했어요."
+                ));
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0,
+            }
+        );
+    });
+}
+
+async function verifyAttendanceLocation() {
+    if (verifyingLocation) return;
+
+    verifyingLocation = true;
+    openButton.disabled = true;
+    openButton.textContent = "위치 확인 중...";
+
+    summary.hidden = false;
+    summary.classList.remove("is-error");
+    summary.textContent = "현재 GPS 위치를 확인하고 있어요.";
+
+    try {
+        // 내가 가입한 학급 불러오기
+        const joinedClasses = await classrooms.getJoinedClasses();
+
+        if (!joinedClasses.length) {
+            throw new Error("가입한 학급이 없어요.");
+        }
+
+        const classroom = joinedClasses[0];
+
+        // 실제 GPS 좌표 가져오기
+        const coords = await getCurrentLocation();
+
+        summary.textContent = "학교와의 거리를 계산하고 있어요.";
+
+        // Supabase에서 관리자 설정 기준으로 거리 검증
+        const result = await classrooms.verifyLocation(
+            classroom.id,
+            coords.latitude,
+            coords.longitude,
+            coords.accuracy
+        );
+
+        if (result.retry) {
+            summary.textContent = result.message;
+            summary.classList.add("is-error");
+        } else if (result.success) {
+            summary.textContent =
+                `✅ 위치 인증 성공! ${result.schoolName}에서 ` +
+                `약 ${result.distanceMeters}m 떨어져 있어요. ` +
+                `(인증 반경 ${result.radiusMeters}m)`;
+
+            summary.classList.remove("is-error");
+        } else {
+            summary.textContent =
+                `❌ 인증 범위 밖이에요. 현재 학교에서 ` +
+                `약 ${result.distanceMeters}m 떨어져 있어요. ` +
+                `(인증 반경 ${result.radiusMeters}m)`;
+
+            summary.classList.add("is-error");
+        }
+    } catch (error) {
+        summary.textContent = error.message;
+        summary.classList.add("is-error");
+    } finally {
+        verifyingLocation = false;
+        openButton.disabled = false;
+        openButton.textContent = "등교했어요";
     }
-    clearError()
-    dialog.showModal()
-    nameInput.focus()
+}
+
+
+openButton.addEventListener('click', () => {
+
+    openButton.addEventListener("click", async () => {
+        if (openButton.textContent.trim() === "등교했어요") {
+            await verifyAttendanceLocation();
+            return;
+        }
+
+        if (openButton.dataset.hasClass === "true") {
+            summary.textContent = "이미 학급에 소속되어 있어요.";
+            summary.classList.add("is-error");
+            summary.hidden = false;
+            return;
+        }
+
+        clearError();
+        dialog.showModal();
+        nameInput.focus();
+    });
+
 })
 closeButton.addEventListener('click', () => dialog.close())
 dialog.addEventListener('click', event => {
@@ -86,13 +192,13 @@ form.addEventListener('submit', async event => {
     if (!/^[A-Z0-9]{5}$/.test(code)) {
         digits.filter(input => !input.value).forEach(input => input.setAttribute('aria-invalid', 'true'))
         status.textContent = '학급코드 5자리를 입력해 주세요.'
-        ;(digits.find(input => !input.value) || digits[0]).focus()
+            ; (digits.find(input => !input.value) || digits[0]).focus()
         return
     }
     submitting = true
     submitButton.disabled = true
     submitButton.textContent = '입장 중…'
-    ;[nameInput, ...digits].forEach(input => { input.disabled = true })
+        ;[nameInput, ...digits].forEach(input => { input.disabled = true })
     try {
         const membership = await classrooms.joinClass({ name, code })
         summary.textContent = `${membership.name} · ${membership.className} 입장 완료`
@@ -106,7 +212,7 @@ form.addEventListener('submit', async event => {
         submitting = false
         submitButton.disabled = false
         submitButton.textContent = '입장'
-        ;[nameInput, ...digits].forEach(input => { input.disabled = false })
+            ;[nameInput, ...digits].forEach(input => { input.disabled = false })
     }
 })
 import { supabase } from './supabaseClient.js'
