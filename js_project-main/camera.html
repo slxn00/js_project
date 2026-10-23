@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <link rel="icon" type="image/png" href="/js_project_icon.png">
+    <link rel="icon" href="/js_project_icon.png">
+    <link rel="apple-touch-icon" href="/js_project_icon.png">
+    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
@@ -9,6 +13,7 @@
     <link rel="stylesheet" href="/src/css/camera.css" />
     <script type="module" src="/src/js/classroom-camera.js"></script>
 </head>
+
 <body>
     <main class="camera-app">
         <header class="prompt-area">
@@ -27,7 +32,8 @@
         <footer class="camera-controls">
             <p id="cameraStatus" class="camera-status" role="status" aria-live="polite">카메라를 켜면 촬영 권한을 요청해요.</p>
             <button id="startCamera" class="primary-button" type="button">카메라 켜기</button>
-            <button id="takePhoto" class="shutter-button" type="button" aria-label="사진 촬영하기" hidden disabled><span aria-hidden="true"></span></button>
+            <button id="takePhoto" class="shutter-button" type="button" aria-label="사진 촬영하기" hidden disabled><span
+                    aria-hidden="true"></span></button>
             <div id="photoActions" class="photo-actions" hidden>
                 <button id="retakePhoto" class="secondary-button" type="button">다시 찍기</button>
                 <a id="savePhoto" class="primary-button" download>사진 저장</a>
@@ -35,4 +41,5 @@
         </footer>
     </main>
 </body>
+
 </html>

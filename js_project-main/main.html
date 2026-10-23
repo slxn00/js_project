@@ -1,17 +1,90 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <link rel="icon" type="image/png" href="/js_project_icon.png">
+  <link rel="icon" href="/js_project_icon.png">
+  <link rel="apple-touch-icon" href="/js_project_icon.png">
+  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>학급 시작하기</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:#f3f6fc;color:#17233d;padding:20px}
-    main{width:min(440px,100%);border-radius:22px;background:white;padding:28px;box-shadow:0 16px 45px #1c366318}
-    .mark{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:15px;background:#eaf1ff;color:#347df1;font-size:24px}h1{margin:16px 0 8px;font-size:24px}p{line-height:1.65;color:#687991;font-size:14px}nav{display:grid;gap:10px;margin-top:24px}a{display:block;text-align:center;text-decoration:none;background:#347df1;color:white;border-radius:12px;padding:14px;font-weight:700}a:last-child{background:#eff4ff;color:#246be0}#routeMessage{margin-top:20px;font-size:13px}
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+      background: #f3f6fc;
+      color: #17233d;
+      padding: 20px
+    }
+
+    main {
+      width: min(440px, 100%);
+      border-radius: 22px;
+      background: white;
+      padding: 28px;
+      box-shadow: 0 16px 45px #1c366318
+    }
+
+    .mark {
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      background: #eaf1ff;
+      color: #347df1;
+      font-size: 24px
+    }
+
+    h1 {
+      margin: 16px 0 8px;
+      font-size: 24px
+    }
+
+    p {
+      line-height: 1.65;
+      color: #687991;
+      font-size: 14px
+    }
+
+    nav {
+      display: grid;
+      gap: 10px;
+      margin-top: 24px
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background: #347df1;
+      color: white;
+      border-radius: 12px;
+      padding: 14px;
+      font-weight: 700
+    }
+
+    a:last-child {
+      background: #eff4ff;
+      color: #246be0
+    }
+
+    #routeMessage {
+      margin-top: 20px;
+      font-size: 13px
+    }
   </style>
   <script type="module" src="/src/js/main.js"></script>
 </head>
+
 <body>
   <main>
     <span class="mark" aria-hidden="true">⌂</span>
@@ -24,4 +97,5 @@
     </nav>
   </main>
 </body>
+
 </html>

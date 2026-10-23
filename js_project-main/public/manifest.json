@@ -1,0 +1,13 @@
+{
+    "name": "JS Project",
+    "short_name": "JS Project",
+    "start_url": "/",
+    "display": "standalone",
+    "icons": [
+        {
+            "src": "/js_project_icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+}

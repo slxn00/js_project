@@ -3,6 +3,9 @@
 
 <head>
     <link rel="icon" type="image/png" href="/js_project_icon.png">
+    <link rel="icon" href="/js_project_icon.png">
+    <link rel="apple-touch-icon" href="/js_project_icon.png">
+    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>회원가입 - 등교 체크인</title>
@@ -47,7 +50,8 @@
                 <div id="otp-group" class="input-group hidden">
                     <label for="otp">이메일 인증번호</label>
                     <div class="input-with-btn">
-                        <input type="text" id="otp" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" />
+                        <input type="text" id="otp" placeholder="123456" inputmode="numeric"
+                            autocomplete="one-time-code" />
                         <button type="button" id="verify-otp-btn" class="inline-btn primary">인증확인</button>
                     </div>
                     <span id="otp-status-text" class="status-text"></span>
