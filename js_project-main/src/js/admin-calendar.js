@@ -246,6 +246,14 @@ async function loadSchedule() {
     setStatus(`학사일정 조회 실패: ${error.message}`);
     dayEvents.textContent = "학사일정을 불러오지 못했어요.";
   }
+
+  // 학급 생성 시 저장된 학교 이름으로 제목 변경
+  const schoolTitle = document.getElementById("adminCalendarTitle");
+
+  if (schoolTitle && data.school?.name) {
+    schoolTitle.textContent = `${data.school.name} 학사일정`;
+  }
+
 }
 
 

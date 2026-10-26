@@ -29,37 +29,59 @@
 
         <div class="app-layout">
 
-            <!-- 왼쪽: 학급 정보 및 학사일정 안내 -->
-            <main class="main-content" aria-label="학급 메인 콘텐츠">
-                <div class="admin-overview">
-                    <div class="admin-overview-heading">
-                        <span class="overview-eyebrow">CLASSROOM DASHBOARD</span>
-                        <h1>우리 학급 한눈에 보기</h1>
-                        <p id="overviewDate">학급 관리 화면</p>
-                    </div>
-                    <section class="calendar-panel" aria-labelledby="adminCalendarTitle">
-                        <div class="calendar-panel-top">
-                            <div><span class="overview-eyebrow">SCHOOL CALENDAR</span>
-                                <h2 id="adminCalendarTitle">학사일정</h2>
-                            </div>
-                            <div class="calendar-nav">
-                                <button type="button" id="calendarPrev" aria-label="이전 달">‹</button>
-                                <strong id="calendarMonth" aria-live="polite"></strong>
-                                <button type="button" id="calendarNext" aria-label="다음 달">›</button>
-                            </div>
-                        </div>
-                        <div class="calendar-weekdays" aria-hidden="true">
-                            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-                        </div>
-                        <div id="calendarDays" class="calendar-days" role="group" aria-label="학사일정 날짜 선택"></div>
-                        <div class="calendar-day-detail" aria-live="polite">
-                            <strong id="calendarSelectedDate">날짜를 선택해 주세요</strong>
-                            <p id="calendarDayEvents">등록된 학사일정이 아직 없어요.</p>
-                        </div>
-                        <p id="calendarStatus" class="calendar-footnote"> 학사일정을 불러오고 있어요...</p>
-                    </section>
+            
+<!-- 왼쪽: 학교 학사일정 -->
+<main class="main-content" aria-label="학교 학사일정">
+    <div class="admin-overview">
+
+        <section class="calendar-panel" aria-labelledby="adminCalendarTitle">
+
+            <div class="calendar-panel-top">
+                <h2 id="adminCalendarTitle">학교 학사일정</h2>
+
+                <div class="calendar-nav">
+                    <button type="button" id="calendarPrev" aria-label="이전 달">‹</button>
+                    <strong id="calendarMonth" aria-live="polite"></strong>
+                    <button type="button" id="calendarNext" aria-label="다음 달">›</button>
                 </div>
-            </main>
+            </div>
+
+            <div class="calendar-weekdays" aria-hidden="true">
+                <span>일</span>
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span>토</span>
+            </div>
+
+            <div
+                id="calendarDays"
+                class="calendar-days"
+                role="group"
+                aria-label="학사일정 날짜 선택">
+            </div>
+
+            <div class="calendar-day-detail" aria-live="polite">
+                <strong id="calendarSelectedDate">
+                    날짜를 선택해 주세요
+                </strong>
+
+                <p id="calendarDayEvents">
+                    등록된 학사일정이 아직 없어요.
+                </p>
+            </div>
+
+            <p id="calendarStatus" class="calendar-footnote">
+                학사일정을 불러오고 있어요...
+            </p>
+
+        </section>
+
+    </div>
+</main>
+
 
             <!-- 오른쪽: 기존 관리자 패널 -->
             <aside class="sidebar">
