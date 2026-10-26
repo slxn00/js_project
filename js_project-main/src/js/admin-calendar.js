@@ -221,6 +221,12 @@ async function loadSchedule() {
       throw new Error("학사일정을 가져오지 못했습니다.");
     }
 
+    const calendarTitle = document.getElementById("adminCalendarTitle");
+
+    if (calendarTitle && data?.school?.name) {
+      calendarTitle.textContent = `${data.school.name} 학사일정`;
+    }
+
     // 나이스가 반환한 모든 일정 사용
     events = data.events || [];
 
