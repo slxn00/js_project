@@ -354,3 +354,71 @@
         min-height: 40px;
     }
 }
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.calendar-day {
+    position: relative;
+    min-height: 44px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background: #edf3ff;
+}
+
+.calendar-day.selected {
+    background: #347df1;
+    color: white;
+}
+
+.calendar-day.has-event::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #347df1;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.calendar-day.selected.has-event::after {
+    background: white;
+}
+
+.neis-class-selector {
+    margin: 12px 0;
+}
+
+.neis-class-selector select {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    border: 1px solid #d9e4f5;
+    border-radius: 8px;
+}
+
+#neisSchoolChoices:not([hidden]) {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+#neisSchoolChoices button {
+    padding: 10px;
+    border: 1px solid #d9e4f5;
+    border-radius: 8px;
+    background: white;
+    text-align: left;
+    cursor: pointer;
+}

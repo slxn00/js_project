@@ -3,82 +3,98 @@ import { supabase } from "./supabaseClient.js";
 
 const $ = (id) => document.getElementById(id);
 
-const classSelect = $("neisClassSelect");
-const status = $("neisStatus");
-const monthTitle = $("neisMonth");
-const days = $("neisDays");
-const eventsBox = $("neisEvents");
-const selectedTitle = $("neisSelectedDate");
-const schoolChoices = $("neisSchoolChoices");
+// 기존 admin.html에 있는 요소들
+const prevButton = $("calendarPrev");
+const nextButton = $("calendarNext");
+const monthTitle = $("calendarMonth");
+const daysContainer = $("calendarDays");
+const selectedDateTitle = $("calendarSelectedDate");
+const dayEvents = $("calendarDayEvents");
+const statusText = $("calendarStatus");
 
-const today = new Date();
+const now = new Date();
 
-let year = today.getFullYear();
-let month = today.getMonth() + 1;
-let selectedDay = today.getDate();
+let year = now.getFullYear();
+let month = now.getMonth() + 1;
+let selectedDay = now.getDate();
 
 let events = [];
+let classrooms = [];
+let classroomId = null;
 let selectedSchool = null;
-let requestId = 0;
+let requestNumber = 0;
 
-const pad = (number) => String(number).padStart(2, "0");
+const pad = (value) => String(value).padStart(2, "0");
 
-function formatDate(day) {
+function dateKey(day) {
   return `${year}${pad(month)}${pad(day)}`;
 }
 
-// 날짜를 선택하면 해당 날짜의 일정 표시
-function showEvents(day) {
+function setStatus(message) {
+  if (statusText) {
+    statusText.textContent = message;
+  }
+}
+
+// 선택한 날짜의 학사일정 표시
+function showDayEvents(day) {
   selectedDay = day;
 
-  selectedTitle.textContent =
+  selectedDateTitle.textContent =
     `${year}년 ${month}월 ${day}일`;
 
-  eventsBox.replaceChildren();
-
-  const selected = events.filter(
-    event => event.date === formatDate(day)
+  const selectedEvents = events.filter(
+    (event) => event.date === dateKey(day)
   );
 
-  if (selected.length === 0) {
-    eventsBox.textContent = "등록된 학사일정이 없어요.";
+  if (selectedEvents.length === 0) {
+    dayEvents.textContent = "등록된 학사일정이 없어요.";
+  } else {
+    dayEvents.textContent = selectedEvents
+      .map((event) => `• ${event.name}`)
+      .join("\n");
   }
 
-  for (const event of selected) {
-    const item = document.createElement("p");
-    item.className = "neis-event-item";
-    item.textContent = event.name;
-
-    if (event.description) {
-      item.title = event.description;
-    }
-
-    eventsBox.appendChild(item);
-  }
+  dayEvents.style.whiteSpace = "pre-line";
 
   renderCalendar();
 }
 
-// 달력 날짜 생성
+// 기존 디자인의 달력 날짜 생성
 function renderCalendar() {
   monthTitle.textContent = `${year}년 ${month}월`;
-  days.replaceChildren();
 
-  const firstDay = new Date(year, month - 1, 1).getDay();
-  const lastDay = new Date(year, month, 0).getDate();
+  daysContainer.replaceChildren();
 
-  for (let i = 0; i < firstDay; i++) {
+  const firstWeekday = new Date(
+    year,
+    month - 1,
+    1
+  ).getDay();
+
+  const lastDay = new Date(
+    year,
+    month,
+    0
+  ).getDate();
+
+  // 첫째 날 이전의 빈 칸
+  for (let i = 0; i < firstWeekday; i++) {
     const empty = document.createElement("span");
-    days.appendChild(empty);
+    empty.className = "calendar-empty";
+    daysContainer.appendChild(empty);
   }
 
+  // 1일부터 마지막 날까지 버튼 생성
   for (let day = 1; day <= lastDay; day++) {
     const button = document.createElement("button");
+
     button.type = "button";
+    button.className = "calendar-day";
     button.textContent = day;
 
     const hasEvent = events.some(
-      event => event.date === formatDate(day)
+      (event) => event.date === dateKey(day)
     );
 
     if (hasEvent) {
@@ -90,24 +106,32 @@ function renderCalendar() {
     }
 
     button.addEventListener("click", () => {
-      showEvents(day);
+      showDayEvents(day);
     });
 
-    days.appendChild(button);
+    daysContainer.appendChild(button);
   }
 }
 
-// 학교명이 같은 학교가 여러 개일 때 선택
+// 학교명이 중복될 경우 표시할 영역
+const schoolChoices = document.createElement("div");
+schoolChoices.id = "neisSchoolChoices";
+schoolChoices.hidden = true;
+
+daysContainer.before(schoolChoices);
+
 function showSchoolChoices(schools) {
-  schoolChoices.hidden = false;
   schoolChoices.replaceChildren();
+  schoolChoices.hidden = false;
+
+  setStatus("동일한 이름의 학교가 있어요. 학교를 선택해 주세요.");
 
   for (const school of schools) {
     const button = document.createElement("button");
-    button.type = "button";
 
+    button.type = "button";
     button.textContent =
-      `${school.name} (${school.address})`;
+      `${school.name} (${school.address || "주소 없음"})`;
 
     button.addEventListener("click", () => {
       selectedSchool = school;
@@ -119,23 +143,21 @@ function showSchoolChoices(schools) {
   }
 }
 
-// Supabase 함수를 호출하여 일정 불러오기
+// Supabase Edge Function을 통한 나이스 조회
 async function loadSchedule() {
-  const currentRequest = ++requestId;
-  const classroomId = classSelect.value;
+  const currentRequest = ++requestNumber;
 
   events = [];
-  renderCalendar();
-  eventsBox.textContent = "일정을 불러오는 중...";
   schoolChoices.hidden = true;
 
+  showDayEvents(selectedDay);
+
   if (!classroomId) {
-    status.textContent = "먼저 학급을 생성해 주세요.";
-    eventsBox.textContent = "";
+    setStatus("먼저 학급을 생성해 주세요.");
     return;
   }
 
-  status.textContent = "나이스 학사일정을 불러오는 중...";
+  setStatus("나이스 학사일정을 불러오고 있어요...");
 
   try {
     const { data, error } = await supabase.functions.invoke(
@@ -155,104 +177,128 @@ async function loadSchedule() {
       }
     );
 
-    if (currentRequest !== requestId) return;
+    if (currentRequest !== requestNumber) return;
 
     if (error) {
       let message = error.message;
 
       try {
-        const body = await error.context?.json();
-        message = body?.message || message;
+        const result = await error.context?.json();
+        message = result?.message || message;
       } catch {
-        // 서버 응답을 JSON으로 읽을 수 없는 경우
+        // 응답 본문을 읽을 수 없는 경우
       }
 
       throw new Error(message);
     }
 
-    if (data.status === "choose-school") {
-      status.textContent =
-        "같은 이름의 학교가 있어요. 정확한 학교를 선택해 주세요.";
-
-      eventsBox.textContent = "";
-      showSchoolChoices(data.schools);
+    if (data?.status === "choose-school") {
+      showSchoolChoices(data.schools || []);
       return;
     }
 
-    if (data.status !== "ok") {
-      throw new Error("학사일정을 확인할 수 없습니다.");
+    if (data?.status !== "ok") {
+      throw new Error("학사일정을 가져오지 못했습니다.");
     }
 
-    events = data.events;
+    events = data.events || [];
 
-    status.textContent =
-      `${data.school.name} · ${events.length}개의 학사일정`;
+    setStatus(
+      `${data.school.name} 학사일정 · ${events.length}건 조회`
+    );
 
-    showEvents(selectedDay);
+    showDayEvents(selectedDay);
 
   } catch (error) {
-    if (currentRequest !== requestId) return;
+    if (currentRequest !== requestNumber) return;
 
-    console.error("나이스 연동 오류:", error);
-    status.textContent = error.message;
-    eventsBox.textContent = "일정을 불러오지 못했어요.";
+    console.error("나이스 API 오류:", error);
+
+    setStatus(`학사일정 조회 실패: ${error.message}`);
+    dayEvents.textContent = "학사일정을 불러오지 못했어요.";
   }
 }
 
-// 로그인한 관리자의 학급 가져오기
-async function loadClasses() {
-  const { data: auth, error: authError } =
-    await supabase.auth.getUser();
+// 학급이 여러 개인 경우 선택창 생성
+function createClassSelector() {
+  if (classrooms.length <= 1) return;
 
-  if (authError || !auth.user) {
-    status.textContent = "로그인 후 이용해 주세요.";
+  const wrapper = document.createElement("div");
+  wrapper.className = "neis-class-selector";
+
+  const label = document.createElement("label");
+  label.textContent = "학사일정을 조회할 학급";
+
+  const select = document.createElement("select");
+
+  classrooms.forEach((classroom, index) => {
+    const option = document.createElement("option");
+
+    option.value = classroom.id;
+    option.textContent =
+      `${index + 1}번 학급 · ${classroom.school_name || "학교명 없음"}`;
+
+    select.appendChild(option);
+  });
+
+  select.value = classroomId;
+
+  select.addEventListener("change", () => {
+    classroomId = select.value;
+    selectedSchool = null;
+    loadSchedule();
+  });
+
+  label.appendChild(select);
+  wrapper.appendChild(label);
+
+  document
+    .querySelector(".calendar-weekdays")
+    .before(wrapper);
+}
+
+// 로그인한 관리자의 학급 조회
+async function loadClassrooms() {
+  setStatus("학급 정보를 불러오고 있어요...");
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    setStatus("로그인 후 학사일정을 확인할 수 있어요.");
     return;
   }
 
   const { data, error } = await supabase
     .from("checkin_classrooms")
     .select("id, school_name")
-    .eq("owner_id", auth.user.id)
-    .order("created_at", { ascending: true });
+    .eq("owner_id", user.id);
 
   if (error) {
-    status.textContent = "학급을 불러오지 못했어요.";
-    console.error(error);
+    console.error("학급 조회 오류:", error);
+    setStatus(`학급 조회 실패: ${error.message}`);
     return;
   }
 
-  classSelect.replaceChildren();
+  classrooms = data || [];
 
-  for (const classroom of data || []) {
-    const option = document.createElement("option");
-    option.value = classroom.id;
-    option.textContent =
-      classroom.school_name || "학교명 없음";
-
-    classSelect.appendChild(option);
-  }
-
-  if (!data?.length) {
-    status.textContent = "생성한 학급이 없습니다.";
+  if (classrooms.length === 0) {
+    setStatus("생성된 학급이 없어요.");
     return;
   }
+
+  // 기본적으로 첫 번째 학급 사용
+  classroomId = classrooms[0].id;
+
+  createClassSelector();
 
   await loadSchedule();
 }
 
-// 학급 변경
-classSelect.addEventListener("change", () => {
-
-  console.log("학급 선택:", document.getElementById("neisClassSelect"));
-  console.log("이전 달:", document.getElementById("neisPrev"));
-  console.log("다음 달:", document.getElementById("neisNext"));
-
-  selectedSchool = null;
-  loadSchedule();
-});
-
-// 이전 달
-$("neisPrev").addEventListener("click", () => {
+// 이전 달 버튼
+prevButton.addEventListener("click", () => {
   month--;
 
   if (month < 1) {
@@ -268,8 +314,8 @@ $("neisPrev").addEventListener("click", () => {
   loadSchedule();
 });
 
-// 다음 달
-$("neisNext").addEventListener("click", () => {
+// 다음 달 버튼
+nextButton.addEventListener("click", () => {
   month++;
 
   if (month > 12) {
@@ -285,6 +331,8 @@ $("neisNext").addEventListener("click", () => {
   loadSchedule();
 });
 
-// 초기 실행
-renderCalendar();
-loadClasses();
+// 페이지 실행 시 달력 먼저 표시
+showDayEvents(selectedDay);
+
+// 그다음 나이스 학사일정 조회
+loadClassrooms();
