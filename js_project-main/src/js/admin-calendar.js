@@ -93,6 +93,27 @@ function renderCalendar() {
     button.className = "calendar-day";
     button.textContent = day;
 
+    const dayNumber = document.createElement("span");
+    dayNumber.textContent = day;
+    dayNumber.className = "calendar-day-number";
+
+    button.appendChild(dayNumber);
+
+    const daySchedule = events.filter(
+      event => event.date === dateKey(day)
+    );
+
+    daySchedule.forEach(event => {
+      const eventLabel = document.createElement("span");
+
+      eventLabel.className = "calendar-event-label";
+      eventLabel.textContent = event.name;
+      eventLabel.title = event.name;
+
+      button.appendChild(eventLabel);
+    });
+
+
     const hasEvent = events.some(
       (event) => event.date === dateKey(day)
     );
@@ -169,9 +190,9 @@ async function loadSchedule() {
           month,
           ...(selectedSchool
             ? {
-                officeCode: selectedSchool.officeCode,
-                schoolCode: selectedSchool.schoolCode,
-              }
+              officeCode: selectedSchool.officeCode,
+              schoolCode: selectedSchool.schoolCode,
+            }
             : {}),
         },
       }
