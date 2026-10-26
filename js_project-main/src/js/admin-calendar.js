@@ -91,7 +91,6 @@ function renderCalendar() {
 
     button.type = "button";
     button.className = "calendar-day";
-    button.textContent = day;
 
     const dayNumber = document.createElement("span");
     dayNumber.textContent = day;
@@ -240,51 +239,15 @@ async function loadSchedule() {
   }
 }
 
-// 학급이 여러 개인 경우 선택창 생성
-function createClassSelector() {
-  if (classrooms.length <= 1) return;
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "neis-class-selector";
 
-  const label = document.createElement("label");
-  label.textContent = "학사일정을 조회할 학급";
-
-  const select = document.createElement("select");
-
-  classrooms.forEach((classroom, index) => {
-    const option = document.createElement("option");
-
-    option.value = classroom.id;
-    option.textContent =
-      `${index + 1}번 학급 · ${classroom.school_name || "학교명 없음"}`;
-
-    select.appendChild(option);
-  });
-
-  select.value = classroomId;
-
-  select.addEventListener("change", () => {
-    classroomId = select.value;
-    selectedSchool = null;
-    loadSchedule();
-  });
-
-  label.appendChild(select);
-  wrapper.appendChild(label);
-
-  document
-    .querySelector(".calendar-weekdays")
-    .before(wrapper);
-}
-
-// 로그인한 관리자의 학급 조회
 async function loadClassrooms() {
-  setStatus("학급 정보를 불러오고 있어요...");
+  setStatus("학교 학사일정을 불러오고 있어요...");
 
+  // 현재 로그인한 관리자 확인
   const {
     data: { user },
-    error: authError,
+    error: authError
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -292,31 +255,41 @@ async function loadClassrooms() {
     return;
   }
 
+  // 관리자가 생성한 학급 조회
   const { data, error } = await supabase
     .from("checkin_classrooms")
-    .select("id, school_name")
-    .eq("owner_id", user.id);
+    .select("id, school_name, created_at")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("학급 조회 오류:", error);
-    setStatus(`학급 조회 실패: ${error.message}`);
+    setStatus("학급 정보를 가져오지 못했습니다.");
     return;
   }
 
   classrooms = data || [];
 
   if (classrooms.length === 0) {
-    setStatus("생성된 학급이 없어요.");
+    setStatus("생성한 학급이 없습니다.");
     return;
   }
 
-  // 기본적으로 첫 번째 학급 사용
-  classroomId = classrooms[0].id;
+  // 가장 최근에 생성한 학급을 자동으로 사용
+  const activeClassroom = classrooms[0];
 
-  createClassSelector();
+  classroomId = activeClassroom.id;
+  selectedSchool = null;
 
+  console.log(
+    "자동 연결된 학교:",
+    activeClassroom.school_name
+  );
+
+  // 선택 과정 없이 학사일정 자동 조회
   await loadSchedule();
 }
+
 
 // 이전 달 버튼
 prevButton.addEventListener("click", () => {
