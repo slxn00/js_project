@@ -242,6 +242,11 @@ async function loadClasses() {
 
 // 학급 변경
 classSelect.addEventListener("change", () => {
+
+  console.log("학급 선택:", document.getElementById("neisClassSelect"));
+  console.log("이전 달:", document.getElementById("neisPrev"));
+  console.log("다음 달:", document.getElementById("neisNext"));
+
   selectedSchool = null;
   loadSchedule();
 });
