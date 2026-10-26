@@ -221,7 +221,16 @@ async function loadSchedule() {
       throw new Error("학사일정을 가져오지 못했습니다.");
     }
 
+    // 나이스가 반환한 모든 일정 사용
     events = data.events || [];
+
+    console.log("나이스 학사일정 전체:", events);
+
+    setStatus(
+      `${data.school.name} · 학사일정 ${events.length}건`
+    );
+
+    showDayEvents(selectedDay);
 
     setStatus(
       `${data.school.name} 학사일정 · ${events.length}건 조회`
