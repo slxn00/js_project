@@ -1,0 +1,3 @@
+[functions.neis-calendar]
+verify_jwt = true
+entrypoint = "./functions/neis-calendar/index.js"
