@@ -312,6 +312,11 @@ if (error) {
 
 classrooms = data || [];
 
+
+console.log("현재 조회된 학급:", classrooms);
+console.log("학급 개수:", classrooms.length);
+
+
 if (classrooms.length === 0) {
   // 현재 로그인한 계정에 학급이 없으면
   calendarPanel.hidden = true;
@@ -376,18 +381,18 @@ nextButton.addEventListener("click", () => {
   loadSchedule();
 
 });
-  supabase.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
-      calendarPanel.hidden = true;
-      classroomId = null;
-      events = [];
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+    calendarPanel.hidden = true;
+    classroomId = null;
+    events = [];
 
-      // 인증 상태 변경 후 현재 계정의 학급 다시 확인
-      setTimeout(() => {
-        loadClassrooms();
-      }, 0);
-    }
-  });
+    // 인증 상태 변경 후 현재 계정의 학급 다시 확인
+    setTimeout(() => {
+      loadClassrooms();
+    }, 0);
+  }
+});
 
 // 페이지 실행 시 달력 먼저 표시
 showDayEvents(selectedDay);
