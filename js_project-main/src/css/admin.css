@@ -212,6 +212,7 @@
     font-size: 12px;
     line-height: 1.5;
 }
+
 .calendar-panel[hidden] {
     display: none !important;
 }
@@ -461,6 +462,11 @@
 .calendar-day.has-event::after {
     display: none;
 }
+
+.calendar-panel[hidden] {
+    display: none !important;
+}
+
 .calendar-panel[hidden] {
     display: none !important;
 }
