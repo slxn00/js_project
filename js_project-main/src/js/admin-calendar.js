@@ -374,6 +374,8 @@ nextButton.addEventListener("click", () => {
   );
 
   loadSchedule();
+
+});
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
       calendarPanel.hidden = true;
@@ -386,8 +388,6 @@ nextButton.addEventListener("click", () => {
       }, 0);
     }
   });
-});
-
 
 // 페이지 실행 시 달력 먼저 표시
 showDayEvents(selectedDay);
