@@ -11,6 +11,7 @@ const daysContainer = $("calendarDays");
 const selectedDateTitle = $("calendarSelectedDate");
 const dayEvents = $("calendarDayEvents");
 const statusText = $("calendarStatus");
+const calendarPanel = document.querySelector(".calendar-panel");
 
 const now = new Date();
 
@@ -262,56 +263,83 @@ async function loadSchedule() {
 
 }
 
-
-
 async function loadClassrooms() {
-  setStatus("학교 학사일정을 불러오고 있어요...");
+  // 학급 확인 전에는 무조건 달력 숨김
+  calendarPanel.hidden = true;
 
-  // 현재 로그인한 관리자 확인
-  const {
-    data: { user },
-    error: authError
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    setStatus("로그인 후 학사일정을 확인할 수 있어요.");
-    return;
-  }
-
-  // 관리자가 생성한 학급 조회
-  const { data, error } = await supabase
-    .from("checkin_classrooms")
-    .select("id, school_name, created_at")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("학급 조회 오류:", error);
-    setStatus("학급 정보를 가져오지 못했습니다.");
-    return;
-  }
-
-  classrooms = data || [];
-
-  if (classrooms.length === 0) {
-    setStatus("생성한 학급이 없습니다.");
-    return;
-  }
-
-  // 가장 최근에 생성한 학급을 자동으로 사용
-  const activeClassroom = classrooms[0];
-
-  classroomId = activeClassroom.id;
+  // 이전에 조회했던 학교 정보 초기화
+  classroomId = null;
   selectedSchool = null;
+  classrooms = [];
+  events = [];
 
-  console.log(
-    "자동 연결된 학교:",
-    activeClassroom.school_name
-  );
+  const schoolTitle = document.getElementById("adminCalendarTitle");
 
-  // 선택 과정 없이 학사일정 자동 조회
-  await loadSchedule();
+  if (schoolTitle) {
+    schoolTitle.textContent = "학교 학사일정";
+  }
+
+  setStatus("학급 정보를 확인하고 있어요...");
+
+  // 여기 아래에는 기존 로그인 확인 및
+  // Supabase 학급 조회 코드를 그대로 유지
 }
+
+// 현재 로그인한 관리자 확인
+const {
+  data: { user },
+  error: authError
+} = await supabase.auth.getUser();
+
+if (authError || !user) {
+  setStatus("로그인 후 학사일정을 확인할 수 있어요.");
+  return;
+}
+
+// 관리자가 생성한 학급 조회
+const { data, error } = await supabase
+  .from("checkin_classrooms")
+  .select("id, school_name, created_at")
+  .eq("owner_id", user.id)
+  .order("created_at", { ascending: false });
+
+if (error) {
+  console.error("학급 조회 오류:", error);
+  setStatus("학급 정보를 가져오지 못했습니다.");
+  return;
+}
+
+
+classrooms = data || [];
+
+if (classrooms.length === 0) {
+  // 현재 로그인한 계정에 학급이 없으면
+  calendarPanel.hidden = true;
+  return;
+}
+
+// 학급이 있을 때만 달력 표시
+calendarPanel.hidden = false;
+
+
+if (classrooms.length === 0) {
+  setStatus("생성한 학급이 없습니다.");
+  return;
+}
+
+// 가장 최근에 생성한 학급을 자동으로 사용
+const activeClassroom = classrooms[0];
+
+classroomId = activeClassroom.id;
+selectedSchool = null;
+
+console.log(
+  "자동 연결된 학교:",
+  activeClassroom.school_name
+);
+
+// 선택 과정 없이 학사일정 자동 조회
+await loadSchedule();
 
 
 // 이전 달 버튼
@@ -346,7 +374,20 @@ nextButton.addEventListener("click", () => {
   );
 
   loadSchedule();
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+      calendarPanel.hidden = true;
+      classroomId = null;
+      events = [];
+
+      // 인증 상태 변경 후 현재 계정의 학급 다시 확인
+      setTimeout(() => {
+        loadClassrooms();
+      }, 0);
+    }
+  });
 });
+
 
 // 페이지 실행 시 달력 먼저 표시
 showDayEvents(selectedDay);

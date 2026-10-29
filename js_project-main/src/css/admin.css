@@ -212,6 +212,9 @@
     font-size: 12px;
     line-height: 1.5;
 }
+.calendar-panel[hidden] {
+    display: none !important;
+}
 
 @media (max-width: 700px) {
     .admin-overview {
