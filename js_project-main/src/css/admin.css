@@ -461,3 +461,6 @@
 .calendar-day.has-event::after {
     display: none;
 }
+.calendar-panel[hidden] {
+    display: none !important;
+}

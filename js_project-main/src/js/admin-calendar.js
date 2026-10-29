@@ -303,6 +303,10 @@ const { data, error } = await supabase
   .eq("owner_id", user.id)
   .order("created_at", { ascending: false });
 
+console.log("현재 로그인 계정:", user.id);
+console.log("달력에서 조회한 학급:", data);
+console.log("학급 조회 오류:", error);
+
 if (error) {
   console.error("학급 조회 오류:", error);
   setStatus("학급 정보를 가져오지 못했습니다.");
@@ -311,8 +315,7 @@ if (error) {
 
 
 classrooms = data || [];
-
-
+console.log("달력 학급 개수:", classrooms.length);
 console.log("현재 조회된 학급:", classrooms);
 console.log("학급 개수:", classrooms.length);
 
