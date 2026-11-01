@@ -266,7 +266,7 @@ export function createAdminCalendar(client) {
       messages.push('나이스 일정을 불러오지 못했어요. 직접 등록한 일정은 별도로 표시됩니다.');
     }
     days.setAttribute('aria-busy', 'false');
-    status.textContent = messages.join(' ') || `${current.school.name} · 직접 등록한 일정은 학생에게도 표시됩니다.`;
+    status.textContent = messages.join(' ') || `${current.school.name} ·`;
     renderCalendar();
   }
 
