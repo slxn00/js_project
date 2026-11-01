@@ -385,39 +385,163 @@ styles.textContent = `
   .calendar-context-menu button:hover {
     background: #edf4ff;
   }
+    
+`;
+
+// ========================================
+// 달력 레이아웃 최종 조정
+// ========================================
+
+styles.textContent += `
+
+/* 필수 입력 표시 */
+.calendar-editor .required-mark {
+    color: #f04452;
+    font-size: 14px;
+    font-weight: 800;
+    margin-left: 2px;
+}
+
+/* 입력 오류가 발생한 칸만 빨간색 */
+.calendar-editor input[aria-invalid="true"],
+.calendar-editor textarea[aria-invalid="true"] {
+    border: 1.5px solid #f04452 !important;
+    background: #fff8f8;
+}
+
+/* 오류가 발생한 칸에 포커스했을 때 */
+.calendar-editor input[aria-invalid="true"]:focus {
+    outline: none;
+    border-color: #f04452 !important;
+    box-shadow: 0 0 0 3px rgba(240, 68, 82, 0.1);
+}
+
+/* 입력 오류 안내 */
+.calendar-editor-error {
+    color: #f04452;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+  /* 달력이 데스크톱 화면 안에 들어오도록 조절 */
+  .calendar-panel {
+    display: flex;
+    flex-direction: column;
+
+    height: calc(100dvh - 70px);
+    min-height: 0;
+
+    overflow: hidden;
+  }
+
+  .calendar-panel-top,
+  .calendar-weekdays {
+    flex-shrink: 0;
+  }
+
+  /* 날짜 영역이 남은 높이를 차지 */
+  #calendarDays {
+    flex: 1 1 auto;
+
+    min-height: 0;
+    margin-top: 8px;
+
+    overflow: hidden;
+  }
+
+  /* 한 주의 높이를 자동 분배 */
+  .schedule-week {
+    min-height: 0;
+    height: 100%;
+  }
+
+  /* 날짜를 각 칸 왼쪽 위에 배치 */
+  .schedule-day {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+
+    padding: 10px 12px;
+
+    min-height: 0;
+    height: 100%;
+  }
+
+  .schedule-day-number {
+    display: block;
+
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  /* 날짜 바로 아래에 일정 막대 */
+  .schedule-bars {
+    top: 35px;
+    bottom: 3px;
+
+    grid-auto-rows: 19px;
+    gap: 3px 0;
+  }
+
+  .schedule-bar {
+    height: 19px;
+    line-height: 19px;
+
+    font-size: 10px;
+  }
+
+  /* 하단 상세 일정 영역 크기 제한 */
+  .calendar-day-detail {
+    flex-shrink: 0;
+
+    max-height: 100px;
+    overflow-y: auto;
+
+    margin-top: 12px;
+  }
+
+  .calendar-footnote {
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+
+  /* 높이가 작은 노트북 화면 대응 */
+  @media (max-height: 750px) {
+    .calendar-panel {
+      height: calc(100dvh - 50px);
+    }
+
+    .schedule-day {
+      padding: 7px 9px;
+    }
+
+    .schedule-bars {
+      top: 28px;
+      grid-auto-rows: 17px;
+    }
+
+    .schedule-bar {
+      height: 17px;
+      line-height: 17px;
+    }
+
+    .calendar-day-detail {
+      max-height: 75px;
+    }
+  }
 `;
 
 document.head.appendChild(styles);
 
 // ========================================
-// 2. 일정 추가 버튼
+// 2. 상단 일정 추가 버튼 제거
 // ========================================
 
-// 버튼이 HTML에 이미 있으면 재사용
-let openButton = addButton;
-
-// 버튼이 없으면 자동 생성
-if (!openButton) {
-  openButton = document.createElement("button");
-  openButton.id = "openCustomEventModal";
-  openButton.type = "button";
-  openButton.textContent = "+ 일정 추가";
-  openButton.className = "calendar-add-button";
-}
-
-const heading = title.parentElement;
-
-// 제목과 추가 버튼을 함께 배치
-if (!heading.classList.contains("calendar-title-wrap")) {
-  const wrap = document.createElement("div");
-  wrap.className = "calendar-title-wrap";
-
-  heading.insertBefore(wrap, title);
-  wrap.appendChild(title);
-  wrap.appendChild(openButton);
-} else if (!openButton.isConnected) {
-  heading.appendChild(openButton);
-}
+// 일정은 날짜 우클릭으로만 등록
+document.getElementById("openCustomEventModal")?.remove();
 
 // ========================================
 // 3. 학사일정 등록 모달
@@ -429,7 +553,7 @@ const editor = document.createElement("dialog");
 editor.className = "calendar-editor";
 
 editor.innerHTML = `
-  <form id="calendarPeriodForm">
+  <form id="calendarPeriodForm" novalidate>
 
     <div class="calendar-editor-head">
       <div>
@@ -445,7 +569,9 @@ editor.innerHTML = `
       </button>
     </div>
 
-    <label for="periodEventName">일정명</label>
+    <label for="periodEventStart">
+      일정명 <span class="required-mark">*</span>
+    </label>
     <input
       id="periodEventName"
       type="text"
@@ -456,7 +582,9 @@ editor.innerHTML = `
 
     <div class="calendar-editor-dates">
       <div>
-        <label for="periodEventStart">시작일</label>
+        <label for="periodEventStart">
+          시작일 <span class="required-mark">*</span>
+        </label>
         <input
           id="periodEventStart"
           type="date"
@@ -465,7 +593,9 @@ editor.innerHTML = `
       </div>
 
       <div>
-        <label for="periodEventEnd">종료일</label>
+        <label for="periodEventStart">
+          종료일 <span class="required-mark">*</span>
+        </label>
         <input
           id="periodEventEnd"
           type="date"
@@ -573,18 +703,19 @@ function openEditor(date = displayDate(selectedDay)) {
   form.reset();
   formError.textContent = "";
 
-  // 선택한 날짜를 시작일과 종료일에 입력
+  // 이전 입력 오류 표시 초기화
+  [inputName, inputStart, inputEnd].forEach((input) => {
+    input.removeAttribute("aria-invalid");
+  });
+
+  // 선택한 날짜 설정
   inputStart.value = date;
   inputEnd.value = date;
 
+  // 모달 열기
   editor.showModal();
   inputName.focus();
 }
-
-// 상단 일정 추가 버튼
-openButton.addEventListener("click", () => {
-  openEditor();
-});
 
 // ========================================
 // 6. 선택한 날짜의 일정 표시
@@ -665,7 +796,18 @@ function renderCalendar() {
   const monthEnd = isoDate(year, month, daysInMonth);
 
   // 6주 고정
-  for (let weekIndex = 0; weekIndex < 6; weekIndex++) {
+
+  // 해당 월에 필요한 주 수만 계산
+  const weekCount = Math.ceil(
+    (firstWeekday + daysInMonth) / 7
+  );
+
+  // 실제 주 수에 맞춰 높이 분배
+  days.style.gridTemplateRows =
+    `repeat(${weekCount}, minmax(0, 1fr))`;
+
+  for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
+
     const week = document.createElement("div");
     week.className = "schedule-week";
 
@@ -960,9 +1102,9 @@ async function loadSchedule() {
 
           ...(selectedSchool
             ? {
-                officeCode: selectedSchool.officeCode,
-                schoolCode: selectedSchool.schoolCode
-              }
+              officeCode: selectedSchool.officeCode,
+              schoolCode: selectedSchool.schoolCode
+            }
             : {})
         }
       }),
@@ -1025,6 +1167,84 @@ async function loadSchedule() {
 }
 
 // ========================================
+// 필수 입력 검사
+// ========================================
+
+// 입력 오류 표시/해제
+function markInvalid(input, invalid) {
+  if (invalid) {
+    input.setAttribute("aria-invalid", "true");
+  } else {
+    input.removeAttribute("aria-invalid");
+  }
+}
+
+// 입력값 검사
+function validateCalendarForm() {
+  const requiredInputs = [
+    inputName,
+    inputStart,
+    inputEnd
+  ];
+
+  let firstInvalid = null;
+
+  // 모든 필수 입력값을 개별 검사
+  for (const input of requiredInputs) {
+    const isEmpty = !input.value.trim();
+
+    markInvalid(input, isEmpty);
+
+    if (isEmpty && !firstInvalid) {
+      firstInvalid = input;
+    }
+  }
+
+  if (firstInvalid) {
+    formError.textContent =
+      "필수 항목을 입력해 주세요.";
+
+    firstInvalid.focus();
+    return false;
+  }
+
+  // 날짜 순서 검사
+  if (inputStart.value > inputEnd.value) {
+    markInvalid(inputEnd, true);
+
+    formError.textContent =
+      "종료일은 시작일보다 빠를 수 없어요.";
+
+    inputEnd.focus();
+    return false;
+  }
+
+  // 모든 검사 통과
+  formError.textContent = "";
+  return true;
+}
+
+// 입력을 수정하면 해당 칸의 오류 표시 해제
+[inputName, inputStart, inputEnd].forEach((input) => {
+  input.addEventListener("input", () => {
+    if (input.value.trim()) {
+      markInvalid(input, false);
+    }
+
+    if (
+      inputStart.value &&
+      inputEnd.value &&
+      inputStart.value <= inputEnd.value
+    ) {
+      markInvalid(inputEnd, false);
+    }
+
+    formError.textContent = "";
+  });
+});
+
+
+// ========================================
 // 11. 일정 저장
 // ========================================
 
@@ -1037,21 +1257,9 @@ form.addEventListener("submit", async (event) => {
   const start = inputStart.value;
   const end = inputEnd.value;
   const description = inputDescription.value.trim();
-
-  if (!name || !start || !end) {
-    formError.textContent =
-      "일정명과 시작일, 종료일을 입력해 주세요.";
-
+  if (!validateCalendarForm()) {
     return;
   }
-
-  if (start > end) {
-    formError.textContent =
-      "종료일은 시작일보다 빠를 수 없어요.";
-
-    return;
-  }
-
   submit.disabled = true;
   formError.textContent = "저장하고 있어요...";
 
