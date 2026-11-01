@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient.js";
 import { redirectAuthCallbackError } from "./auth-callback.js";
 import { createClassroomStore } from './classroom-store.js';
 import { createClassroomDialog } from './classroom-dialog.js';
+import { createAdminCalendar } from './admin-calendar.js';
 
 const hasAuthCallbackError = redirectAuthCallbackError();
 
@@ -16,6 +17,8 @@ const panels = {
   board: $("#boardPanel"),
 };
 const classrooms = createClassroomStore(supabase);
+const calendar = createAdminCalendar(supabase);
+const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 const manageClassroom = createClassroomDialog($('#classroomManageDialog'));
 let accountUserId = null;
 let ownedClasses = [];
@@ -104,14 +107,14 @@ function openCreateClass() {
   createClassModal.hidden = false;
 
   // 모달을 연 동안 뒤쪽 페이지 스크롤 방지
-  document.body.style.overflow = "hidden";
+  document.body.classList.add("modal-open");
 }
 
 function closeCreateClass() {
   createClassModal.hidden = true;
   createClassFrame.src = "about:blank";
 
-  document.body.style.overflow = "";
+  document.body.classList.remove("modal-open");
 }
 
 // 내부 학급 생성 화면에서 닫기 요청 받기
@@ -227,27 +230,18 @@ function getSavedClasses(userId) {
 function renderClasses(classes) {
   ownedClasses = classes;
   activeClassId = classes[0]?.id || null;
+  calendar.setClassroom(classes[0]);
   renderClassPanel();
   renderMembersPanel();
 }
 
 function classCard(item, managed = false) {
-  const card = document.createElement('article');
-  card.className = 'created-class-card';
-  const name = document.createElement('h3');
-  name.textContent = item.className;
-  const school = document.createElement('p');
-  school.textContent = item.school.name;
-  const code = document.createElement('strong');
-  code.className = 'class-code';
-  code.textContent = item.code;
-  const label = document.createElement('small');
-  label.textContent = '학급 참여코드';
-  card.append(name, school, code, label);
+  const card = clone('adminClassCardTemplate');
+  card.querySelector('h3').textContent = item.className;
+  card.querySelector('p').textContent = item.school.name;
+  card.querySelector('.class-code').textContent = item.code;
   if (managed) {
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'delete-class-button';
+    const remove = card.querySelector('button');
     remove.textContent = '학급 삭제';
     remove.setAttribute('aria-label', `${item.className} 학급 삭제`);
     remove.addEventListener('click', () => manageClassroom({
@@ -267,11 +261,8 @@ function classCard(item, managed = false) {
         await Promise.all([initializeSavedClasses(), loadJoinedClasses()]);
       },
     }));
-    card.append(remove);
   } else {
-    const leave = document.createElement('button');
-    leave.type = 'button';
-    leave.className = 'delete-class-button';
+    const leave = card.querySelector('button');
     leave.textContent = '학급 탈퇴';
     leave.setAttribute('aria-label', `${item.className} 학급 탈퇴`);
     leave.addEventListener('click', () => manageClassroom({
@@ -291,51 +282,27 @@ function classCard(item, managed = false) {
         await Promise.all([initializeSavedClasses(), loadJoinedClasses()]);
       },
     }));
-    card.append(leave);
   }
   return card;
 }
 
 function renderClassPanel() {
   updateClassroomRole();
-  const panel = panels.classes;
-  panel.replaceChildren();
-  const title = document.createElement('h2');
-  title.className = 'class-section-title';
-  title.textContent = '내 클래스';
-  panel.append(title);
-  if (joinedClasses.length) {
-    const list = document.createElement('div');
-    list.className = 'created-classes';
-    list.id = 'joinedClassesList';
-    joinedClasses.forEach(item => list.append(classCard(item)));
-    panel.append(list);
-  }
-  const status = document.createElement('p');
-  status.id = 'joinedClassesStatus';
-  status.className = 'class-list-status';
-  status.setAttribute('role', 'status');
+  const content = clone('adminClassPanelTemplate');
+  const joined = content.querySelector('[data-joined]');
+  joined.hidden = !joinedClasses.length;
+  joinedClasses.forEach(item => joined.append(classCard(item)));
+  const status = content.querySelector('#joinedClassesStatus');
   status.textContent = ownedClasses.length && joinedClassesLoaded ? '' : joinedStatus;
   status.hidden = !status.textContent;
-  panel.append(status);
-  if (ownedClasses.length) {
-    const heading = document.createElement('h2');
-    heading.className = 'class-section-title';
-    heading.textContent = '관리 중인 클래스';
-    const list = document.createElement('div');
-    list.className = 'created-classes';
-    ownedClasses.forEach(item => list.append(classCard(item, true)));
-    if (joinedClasses.length) panel.append(heading);
-    panel.append(list);
-  }
-  if (ownedClassesLoaded && joinedClassesLoaded && !ownedClasses.length && !joinedClasses.length) {
-    const addButton = document.createElement('button');
-    addButton.className = 'create-class-button';
-    addButton.type = 'button';
-    addButton.textContent = '+ 새 학급 생성하기';
-    addButton.addEventListener('click', openCreateClass);
-    panel.append(addButton);
-  }
+  content.querySelector('[data-owned-heading]').hidden = !joinedClasses.length || !ownedClasses.length;
+  const owned = content.querySelector('[data-owned]');
+  owned.hidden = !ownedClasses.length;
+  ownedClasses.forEach(item => owned.append(classCard(item, true)));
+  const add = content.querySelector('.create-class-button');
+  add.hidden = !(ownedClassesLoaded && joinedClassesLoaded && !ownedClasses.length && !joinedClasses.length);
+  add.addEventListener('click', openCreateClass);
+  panels.classes.replaceChildren(content);
 }
 
 function updateClassroomRole() {
@@ -344,7 +311,7 @@ function updateClassroomRole() {
   $('#accountRole').textContent = teacher ? '선생님' : student ? '학생' : ownedClassesLoaded && joinedClassesLoaded ? '학급 미소속' : '학급 확인 중';
   const memberTab = document.querySelector('[data-tab="members"]');
   memberTab.hidden = !teacher;
-  document.querySelector('.tabs').style.gridTemplateColumns = `repeat(${teacher ? 3 : 2}, 1fr)`;
+  document.querySelector('.tabs').classList.toggle('has-members', teacher);
   const actionButton = $('#joinClassButton');
   actionButton.disabled = !(ownedClassesLoaded && joinedClassesLoaded);
   actionButton.dataset.action = teacher ? 'write-post' : 'create-class';
@@ -390,41 +357,14 @@ async function loadJoinedClasses() {
 
 function renderMembersPanel() {
   memberRequest++;
-  const panel = panels.members;
-  panel.replaceChildren();
-  const wrapper = document.createElement('section');
-  wrapper.className = 'members-view';
-  const heading = document.createElement('div');
-  heading.className = 'members-heading';
-  const title = document.createElement('h2');
-  title.textContent = '학급 멤버';
-  const count = document.createElement('span');
-  count.id = 'memberCount';
-  count.textContent = '0명';
-  heading.append(title, count);
-  wrapper.append(heading);
-
-  if (ownedClasses.length) {
-    const refresh = document.createElement('button');
-    refresh.id = 'refreshMembers';
-    refresh.className = 'refresh-members';
-    refresh.type = 'button';
-    refresh.textContent = '새로고침';
-    refresh.addEventListener('click', loadMembers);
-    wrapper.append(refresh);
-  }
-
-  const status = document.createElement('p');
-  status.id = 'membersStatus';
-  status.className = 'members-status';
-  status.setAttribute('role', 'status');
-  status.textContent = ownedClasses.length ? '멤버를 불러오고 있어요.' : '학생 관리는 해당 학급의 선생님만 할 수 있어요.';
-  const list = document.createElement('ul');
-  list.id = 'membersList';
-  list.className = 'members-list';
-  wrapper.append(status, list);
-  panel.append(wrapper);
-  if (ownedClasses.length) loadMembers();
+  const wrapper = clone('membersPanelTemplate');
+  const refresh = wrapper.querySelector('#refreshMembers');
+  refresh.hidden = !ownedClasses.length;
+  refresh.addEventListener('click', loadMembers);
+  wrapper.querySelector('#membersStatus').textContent = ownedClasses.length
+    ? '멤버를 불러오고 있어요.' : '학생 관리는 해당 학급의 선생님만 할 수 있어요.';
+  panels.members.replaceChildren(wrapper);
+  if (ownedClasses.length) void loadMembers();
 }
 
 async function loadMembers() {
@@ -443,54 +383,33 @@ async function loadMembers() {
     $('#memberCount').textContent = `${members.length}명`;
     status.textContent = members.length ? '학급에 입장한 사용자입니다.' : '아직 입장한 멤버가 없어요.';
     members.forEach(member => {
-      const row = document.createElement('li');
-      row.className = 'member-row';
-      const avatar = document.createElement('span');
-      avatar.className = 'member-avatar';
-      avatar.textContent = [...member.name][0] || '•';
-      avatar.setAttribute('aria-hidden', 'true');
-      const details = document.createElement('div');
-      const name = document.createElement('strong');
-      name.textContent = member.name;
-      const time = document.createElement('small');
-      time.textContent = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(member.joinedAt)) + ' 입장';
-      details.append(name, time);
-      const actions = document.createElement('details');
-      actions.className = 'member-actions';
-      actions.setAttribute('name', 'member-actions');
-      const toggle = document.createElement('summary');
-      toggle.className = 'member-menu-toggle';
+      const row = clone('memberRowTemplate');
+      row.querySelector('.member-avatar').textContent = [...member.name][0] || '•';
+      row.querySelector('strong').textContent = member.name;
+      row.querySelector('small').textContent = new Intl.DateTimeFormat('ko-KR', {
+        timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
+      }).format(new Date(member.joinedAt)) + ' 입장';
+      const actions = row.querySelector('.member-actions');
+      const toggle = row.querySelector('summary');
       toggle.setAttribute('aria-label', `${member.name} 학생 더 보기`);
-      toggle.title = '학생 관리';
-      toggle.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>';
-      const menu = document.createElement('div');
-      menu.className = 'member-menu';
       const openManagement = options => {
         actions.open = false;
         toggle.focus();
         manageClassroom(options);
       };
-      const edit = document.createElement('button');
-      edit.type = 'button';
-      edit.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15z"/></svg><span>이름 수정</span>';
+      const edit = row.querySelector('[data-edit]');
       edit.setAttribute('aria-label', `${member.name} 이름 수정`);
       edit.addEventListener('click', () => openManagement({
         title: '학생 이름 수정', description: '이 학급의 멤버 목록에 표시할 이름을 입력해 주세요.',
         name: member.name, submit: '저장',
         action: async name => { await classrooms.renameMember(id, member.userId, name); await loadMembers(); },
       }));
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></svg><span>학생 삭제</span>';
-      remove.className = 'remove-member-button';
+      const remove = row.querySelector('.remove-member-button');
       remove.setAttribute('aria-label', `${member.name} 학생 삭제`);
       remove.addEventListener('click', () => openManagement({
         title: '학생 삭제', description: `${member.name} 학생을 이 학급에서 제외할까요? 학생 계정은 유지됩니다.`, submit: '학생 삭제',
         action: async () => { await classrooms.removeMember(id, member.userId); await loadMembers(); },
       }));
-      menu.append(edit, remove);
-      actions.append(toggle, menu);
-      row.append(avatar, details, actions);
       list.append(row);
     });
   } catch (error) {
@@ -501,17 +420,6 @@ async function loadMembers() {
     if (request === memberRequest && $('#refreshMembers')) $('#refreshMembers').disabled = false;
   }
 }
-
-window.addEventListener('classroom:joined', (event) => {
-  const membership = event.detail;
-  joinedClasses = [
-    { id: membership.classId, className: membership.className, school: { name: membership.schoolName }, code: membership.code, joinedAt: membership.joinedAt },
-    ...joinedClasses.filter(item => item.id !== membership.classId),
-  ];
-  joinedStatus = '';
-  renderClassPanel();
-  document.querySelector('[data-tab="classes"]').click();
-});
 
 // 학급 생성 메시지 수신
 window.addEventListener("message", async (event) => {
@@ -611,7 +519,7 @@ async function initializeSavedClasses() {
     ownedClassesLoaded = true;
     renderClasses(classes);
   } catch (error) {
-    renderClasses(legacy);
+    renderClasses([]);
     $('#membersStatus').textContent = error.message;
   }
 }
@@ -623,3 +531,10 @@ if (!hasAuthCallbackError) {
   loadJoinedClasses();
 }
 
+
+supabase.auth.onAuthStateChange(event => {
+  if (event === 'SIGNED_OUT') {
+    calendar.setClassroom(null);
+    window.location.replace('/login.html');
+  }
+});

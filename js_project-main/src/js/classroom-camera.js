@@ -74,7 +74,7 @@ $('#takePhoto').addEventListener('click', () => {
     if (opening) return
     try {
         const frame = $('#viewfinder')
-        const photo = camera.capture(document.createElement('canvas'), { width: frame.clientWidth, height: frame.clientHeight })
+        const photo = camera.capture(document.querySelector('#captureCanvas'), { width: frame.clientWidth, height: frame.clientHeight })
         $('#photoPreview').src = photo
         $('#photoPreview').hidden = false
         video.hidden = true

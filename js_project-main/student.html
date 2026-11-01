@@ -3,7 +3,6 @@
 
 <head>
   <link rel="icon" type="image/png" href="/js_project_icon.png">
-  <link rel="icon" href="/js_project_icon.png">
   <link rel="apple-touch-icon" href="/ios_icon.png">
   <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
@@ -52,14 +51,15 @@
 
       <section class="student-section" aria-labelledby="scheduleHeading">
         <div class="section-heading">
-          <h2 id="scheduleHeading">학사일정</h2><span class="muted-small">이번 달</span>
+          <h2 id="scheduleHeading">학사일정</h2>
+          <button type="button" id="refreshSchedule" class="text-button" disabled>새로고침</button>
         </div>
-        <div class="info-card">
-          <div class="info-symbol" aria-hidden="true">📅</div>
-          <div><strong>등록된 학사일정이 아직 없어요.</strong>
-            <p>관리자 일정 등록 기능이나 학교 학사일정 API를 연결하면 이곳에 표시돼요.</p>
-          </div>
+        <div class="schedule-toolbar">
+          <span id="scheduleSummary" class="muted-small">예정·진행 중인 일정</span>
+          <label><input type="checkbox" id="includePastEvents"> 지난 일정 포함</label>
         </div>
+        <p id="scheduleStatus" class="schedule-status" role="status" aria-live="polite">학급을 확인하고 있어요.</p>
+        <ul id="studentScheduleList" class="student-schedule-list" aria-label="등록된 학사일정"></ul>
       </section>
 
       <section class="student-section" aria-labelledby="noticeHeading">
@@ -113,6 +113,21 @@
       <button type="submit" id="joinSubmit" class="primary-button">학급 입장하기</button>
     </form>
   </dialog>
+  <template id="studentClassEmptyTemplate">
+    <div><strong>아직 가입한 학급이 없어요.</strong><p>하단의 학급 입장 버튼을 눌러 학급 참여 코드를 입력하세요.</p></div>
+  </template>
+  <template id="studentClassTemplate">
+    <div class="student-class-details">
+      <h3></h3><p></p><span class="code-label">학급 참여 코드</span><strong class="class-code"></strong>
+      <button type="button" class="leave-button">학급 탈퇴</button>
+    </div>
+  </template>
+  <template id="studentEventTemplate">
+    <li class="student-event">
+      <div class="event-info"><h3></h3><p class="event-date"></p><p class="event-description" hidden></p></div>
+      <div class="event-countdown"><span class="dday-badge"></span><small class="event-state"></small></div>
+    </li>
+  </template>
 </body>
 
 </html>

@@ -288,21 +288,9 @@ function renderSchoolResults(places) {
     );
 
     places.forEach((place) => {
-        const button = document.createElement("button");
-
-        button.type = "button";
-        button.className = "school-result";
-
-        const name = document.createElement("strong");
-        name.textContent = place.place_name;
-
-        const address = document.createElement("span");
-        address.textContent =
-            place.road_address_name ||
-            place.address_name ||
-            "주소 정보 없음";
-
-        button.append(name, address);
+        const button = document.getElementById('schoolResultTemplate').content.firstElementChild.cloneNode(true);
+        button.querySelector('strong').textContent = place.place_name;
+        button.querySelector('span').textContent = place.road_address_name || place.address_name || '주소 정보 없음';
 
         button.addEventListener("click", () => {
             selectSchool(place);

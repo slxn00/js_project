@@ -33,3 +33,7 @@
 - 함수의 사용자 ID는 `auth.uid()`에서 가져옵니다. 폼에 사용자 ID나 관리자 ID를 넣어 권한을 바꿀 수 없습니다.
 
 참고: [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+## 학사일정 공유
+
+학급 마이그레이션을 적용한 뒤 [학사일정 마이그레이션](supabase/migrations/202611010001_academic_calendar.sql)을 실행합니다. 관리자 화면에서 등록한 일정은 같은 학급 학생의 학사일정 목록에 기간·설명·D-day와 함께 표시됩니다. 학생은 조회만 가능하며, 탈퇴하거나 학급이 삭제되면 조회 권한도 사라집니다. 기존의 학급 테이블 조회 권한은 넓히지 않습니다. 권한 구성은 [Supabase RLS 공식 문서](https://supabase.com/docs/guides/database/postgres/row-level-security)를 참고했습니다.

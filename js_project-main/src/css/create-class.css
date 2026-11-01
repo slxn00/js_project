@@ -560,7 +560,8 @@ label {
 }
 
 /* 메인화면 안에서 열린 학급 생성 모달 */
-.embedded-create-class {
+html.embedded-create-class,
+body.embedded-create-class {
     background: transparent;
 }
 
@@ -585,47 +586,6 @@ label {
 }
 
 /* 작은 화면 */
-@media (max-width: 760px) {
-    .embedded-create-class .overlay {
-        padding: 10px;
-    }
-
-    .embedded-create-class .modal {
-        max-height: calc(100dvh - 20px);
-    }
-}
-
-/* 메인화면 위에 표시되는 학급 생성 모달 */
-
-/* iframe 내부 HTML 배경 투명하게 */
-html.embedded-create-class,
-body.embedded-create-class {
-    background: transparent !important;
-}
-
-/* 가짜 메인화면 숨기기 */
-.embedded-create-class .background-app {
-    display: none !important;
-}
-
-/* 학급 생성 모달 외부 배경 투명하게 */
-.embedded-create-class .overlay {
-    min-height: 100dvh;
-    padding: 20px;
-
-    background: transparent !important;
-
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* 학급 생성 카드 자체는 흰색 유지 */
-.embedded-create-class .modal {
-    background: #ffffff;
-    max-height: calc(100dvh - 40px);
-    overflow-y: auto;
-}
-
 @media (max-width: 760px) {
     .embedded-create-class .overlay {
         padding: 10px;

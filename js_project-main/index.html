@@ -3,7 +3,6 @@
 
 <head>
   <link rel="icon" type="image/png" href="/js_project_icon.png">
-  <link rel="icon" href="/js_project_icon.png">
   <link rel="apple-touch-icon" href="/ios_icon.png">
   <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
@@ -15,18 +14,7 @@
 
 <body>
   <p role="status">로그인 상태를 확인하고 있습니다.</p>
-  <script type="module">
-    import { supabase } from '/src/js/supabaseClient.js'
-    import { redirectAuthCallbackError } from '/src/js/auth-callback.js'
-    try {
-      if (!redirectAuthCallbackError()) {
-        const { data, error } = await supabase.auth.getSession()
-        window.location.replace(!error && data.session ? '/main.html' : '/login.html')
-      }
-    } catch {
-      window.location.replace('/login.html')
-    }
-  </script>
+  <script type="module" src="/src/js/main.js"></script>
   <noscript><a href="/login.html">로그인 화면으로 이동</a></noscript>
 </body>
 

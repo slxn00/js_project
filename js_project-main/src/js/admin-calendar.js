@@ -1,1456 +1,242 @@
-
-import { supabase } from "./supabaseClient.js";
-
-const $ = (id) => document.getElementById(id);
-
-// 기존 admin.html 요소
-const panel = document.querySelector(".calendar-panel");
-const title = $("adminCalendarTitle");
-const monthLabel = $("calendarMonth");
-const days = $("calendarDays");
-const dateLabel = $("calendarSelectedDate");
-const dayEvents = $("calendarDayEvents");
-const footer = $("calendarStatus");
-const previous = $("calendarPrev");
-const next = $("calendarNext");
-const addButton = $("openCustomEventModal");
-
-// 날짜 및 학급 상태
-const today = new Date();
-
-let year = today.getFullYear();
-let month = today.getMonth() + 1;
-let selectedDay = today.getDate();
-
-let activeClassroom = null;
-let currentUser = null;
-let selectedSchool = null;
-let entries = [];
-
-let loadToken = 0;
-let accountToken = 0;
-
-// 날짜 유틸리티
-const pad = (n) => String(n).padStart(2, "0");
-
-const isoDate = (y, m, d) =>
-  `${y}-${pad(m)}-${pad(d)}`;
-
-function normalizedDate(date) {
-  const raw = String(date ?? "")
-    .replaceAll("-", "")
-    .slice(0, 8);
-
-  if (raw.length !== 8) return "";
-
-  return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
-}
-
-function displayDate(day) {
-  return isoDate(year, month, day);
-}
-
-function lastDay() {
-  return new Date(year, month, 0).getDate();
-}
-
-// ========================================
-// 1. 달력 및 모달 스타일
-// ========================================
-
-const styles = document.createElement("style");
-
-styles.textContent = `
-  .calendar-panel[hidden] {
-    display: none !important;
-  }
-
-  .main-content {
-    min-width: 0;
-  }
-
-  .admin-overview {
-    width: 100%;
-    max-width: none;
-  }
-
-  .calendar-panel {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: calc(100dvh - 76px);
-  }
-
-  .calendar-panel-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .calendar-title-wrap {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .calendar-title-wrap h2 {
-    margin: 0;
-  }
-
-  .calendar-add-button {
-    border: 1px solid #d9e6fb;
-    border-radius: 9px;
-    background: #edf4ff;
-    color: #3182f6;
-    padding: 9px 13px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  /* 달력 전체 */
-  #calendarDays {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(6, minmax(110px, 1fr));
-    gap: 0;
-    flex: 1;
-    min-height: 690px;
-    margin-top: 12px;
-  }
-
-  /* 주 단위 영역 */
-  .schedule-week {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    min-height: 110px;
-    border-top: 1px solid #e9edf5;
-  }
-
-  .schedule-day,
-  .schedule-empty {
-    min-width: 0;
-    height: 100%;
-    border: 0;
-    background: transparent;
-    padding: 10px 7px 5px;
-    text-align: center;
-  }
-
-  .schedule-day {
-    color: #253349;
-    cursor: pointer;
-    position: relative;
-    border-radius: 10px;
-  }
-
-  .schedule-day.selected {
-    background: rgba(49, 130, 246, 0.09);
-    color: #1766dd;
-  }
-
-  .schedule-day:focus-visible {
-    outline: 2px solid #3182f6;
-    outline-offset: -2px;
-  }
-
-  .schedule-day-number {
-    font-size: 13px;
-    font-weight: 650;
-  }
-
-  /* 기간 일정 막대 */
-  .schedule-bars {
-    pointer-events: none;
-    position: absolute;
-    inset: 35px 0 3px;
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: 21px;
-    gap: 3px 0;
-    align-content: start;
-  }
-
-  .schedule-bar {
-    min-width: 0;
-    height: 21px;
-    line-height: 21px;
-    padding: 0 8px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 11px;
-    font-weight: 700;
-    color: #1d64d8;
-    background: #dceaff;
-    margin: 0 1px;
-  }
-
-  .schedule-bar.custom {
-    background: #cfe3ff;
-    color: #174fa4;
-  }
-
-  .schedule-bar.single {
-    border-radius: 5px;
-    margin: 0 4px;
-  }
-
-  .schedule-bar.starts {
-    border-radius: 5px 0 0 5px;
-    margin-left: 4px;
-    margin-right: 0;
-  }
-
-  .schedule-bar.middle {
-    border-radius: 0;
-    margin: 0;
-  }
-
-  .schedule-bar.ends {
-    border-radius: 0 5px 5px 0;
-    margin-left: 0;
-    margin-right: 4px;
-  }
-
-  /* 날짜별 상세 일정 */
-  .schedule-details-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin: 7px 0;
-  }
-
-  .schedule-details-row span {
-    flex: 1;
-  }
-
-  .schedule-details-row button {
-    border: 1px solid #f5cdcd;
-    background: #fff2f2;
-    color: #c54545;
-    border-radius: 7px;
-    padding: 4px 9px;
-    cursor: pointer;
-  }
-
-  /* 하단에는 학교명만 */
-  #calendarStatus {
-    color: #8b95a1;
-  }
-
-  /* 일정 추가 모달 */
-  .calendar-editor {
-    position: fixed;
-    inset: 0;
-    width: min(460px, calc(100% - 28px));
-    max-height: 88dvh;
-    margin: auto;
-    padding: 0;
-    border: 0;
-    border-radius: 22px;
-    background: white;
-    color: #191f28;
-    box-shadow: 0 24px 80px #14243b33;
-    overflow: auto;
-  }
-
-  .calendar-editor::backdrop {
-    background: #1c2b4666;
-    backdrop-filter: blur(9px);
-    -webkit-backdrop-filter: blur(9px);
-  }
-
-  .calendar-editor form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 28px;
-  }
-
-  .calendar-editor-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .calendar-editor-head h2 {
-    font-size: 23px;
-    margin: 0 0 7px;
-  }
-
-  .calendar-editor-head p {
-    margin: 0;
-    color: #8b95a1;
-    font-size: 13px;
-  }
-
-  .calendar-editor-close {
-    background: #f2f4f7;
-    border: none;
-    border-radius: 9px;
-    font-size: 24px;
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-  }
-
-  .calendar-editor label {
-    font-size: 13px;
-    font-weight: 700;
-    margin-top: 5px;
-  }
-
-  .calendar-editor input,
-  .calendar-editor textarea {
-    width: 100%;
-    min-width: 0;
-    border: 1px solid #d9e2ec;
-    border-radius: 10px;
-    padding: 12px;
-    font: inherit;
-  }
-
-  .calendar-editor input:focus,
-  .calendar-editor textarea:focus {
-    outline: 2px solid #99bfff;
-  }
-
-  .calendar-editor-dates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .calendar-editor-dates > div {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .calendar-editor-submit {
-    background: #3182f6;
-    color: #fff;
-    border: none;
-    border-radius: 11px;
-    padding: 13px;
-    margin-top: 8px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .calendar-editor-submit:disabled {
-    opacity: 0.55;
-    cursor: default;
-  }
-
-  .calendar-editor-error {
-    min-height: 18px;
-    margin: 0;
-    font-size: 12px;
-    color: #c44141;
-  }
-
-  /* 우클릭 메뉴 */
-  .calendar-context-menu {
-    position: fixed;
-    z-index: 9999;
-    min-width: 165px;
-    padding: 6px;
-    background: #fff;
-    border: 1px solid #e1e7ef;
-    border-radius: 12px;
-    box-shadow: 0 14px 40px #18253c30;
-  }
-
-  .calendar-context-menu button {
-    display: block;
-    width: 100%;
-    padding: 11px 12px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    font: inherit;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-  }
-
-  .calendar-context-menu button:hover {
-    background: #edf4ff;
-  }
-    
-`;
-
-// ========================================
-// 달력 레이아웃 최종 조정
-// ========================================
-
-styles.textContent += `
-
-/* 필수 입력 표시 */
-.calendar-editor .required-mark {
-    color: #f04452;
-    font-size: 14px;
-    font-weight: 800;
-    margin-left: 2px;
-}
-
-/* 입력 오류가 발생한 칸만 빨간색 */
-.calendar-editor input[aria-invalid="true"],
-.calendar-editor textarea[aria-invalid="true"] {
-    border: 1.5px solid #f04452 !important;
-    background: #fff8f8;
-}
-
-/* 오류가 발생한 칸에 포커스했을 때 */
-.calendar-editor input[aria-invalid="true"]:focus {
-    outline: none;
-    border-color: #f04452 !important;
-    box-shadow: 0 0 0 3px rgba(240, 68, 82, 0.1);
-}
-
-/* 입력 오류 안내 */
-.calendar-editor-error {
-    color: #f04452;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-
-  /* 달력이 데스크톱 화면 안에 들어오도록 조절 */
-  .calendar-panel {
-    display: flex;
-    flex-direction: column;
-
-    height: calc(100dvh - 70px);
-    min-height: 0;
-
-    overflow: hidden;
-  }
-
-  .calendar-panel-top,
-  .calendar-weekdays {
-    flex-shrink: 0;
-  }
-
-  /* 날짜 영역이 남은 높이를 차지 */
-  #calendarDays {
-    flex: 1 1 auto;
-
-    min-height: 0;
-    margin-top: 8px;
-
-    overflow: hidden;
-  }
-
-  /* 한 주의 높이를 자동 분배 */
-  .schedule-week {
-    min-height: 0;
-    height: 100%;
-  }
-
-  /* 날짜를 각 칸 왼쪽 위에 배치 */
-  .schedule-day {
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-
-    padding: 10px 12px;
-
-    min-height: 0;
-    height: 100%;
-  }
-
-  .schedule-day-number {
-    display: block;
-
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.2;
-    text-align: left;
-  }
-
-  /* 날짜 바로 아래에 일정 막대 */
-  .schedule-bars {
-    top: 35px;
-    bottom: 3px;
-
-    grid-auto-rows: 19px;
-    gap: 3px 0;
-  }
-
-  .schedule-bar {
-    height: 19px;
-    line-height: 19px;
-
-    font-size: 10px;
-  }
-
-  /* 하단 상세 일정 영역 크기 제한 */
-  .calendar-day-detail {
-    flex-shrink: 0;
-
-    max-height: 100px;
-    overflow-y: auto;
-
-    margin-top: 12px;
-  }
-
-  .calendar-footnote {
-    flex-shrink: 0;
-    margin-top: 8px;
-  }
-
-  /* 높이가 작은 노트북 화면 대응 */
-  @media (max-height: 750px) {
-    .calendar-panel {
-      height: calc(100dvh - 50px);
-    }
-
-    .schedule-day {
-      padding: 7px 9px;
-    }
-
-    .schedule-bars {
-      top: 28px;
-      grid-auto-rows: 17px;
-    }
-
-    .schedule-bar {
-      height: 17px;
-      line-height: 17px;
-    }
-
-    .calendar-day-detail {
-      max-height: 75px;
+import { createCalendarStore, eventRange, isoDate, normalizedDate, todayISO } from './calendar.js';
+
+export function createAdminCalendar(client) {
+  const $ = id => document.getElementById(id);
+  const clone = id => $(id).content.firstElementChild.cloneNode(true);
+  const store = createCalendarStore(client);
+  const panel = $('adminCalendar');
+  const days = $('calendarDays');
+  const details = $('calendarDayEvents');
+  const status = $('calendarStatus');
+  const choices = $('neisSchoolChoices');
+  const editor = $('calendarEditor');
+  const form = $('calendarPeriodForm');
+  const name = $('periodEventName');
+  const start = $('periodEventStart');
+  const end = $('periodEventEnd');
+  const description = $('periodEventDescription');
+  const error = $('periodEventError');
+  const submit = form.querySelector('[type="submit"]');
+  let [year, month, selectedDay] = todayISO().split('-').map(Number);
+  let classroom = null;
+  let selectedSchool = null;
+  let entries = [];
+  let request = 0;
+  let saving = false;
+  const selectedDate = () => isoDate(year, month, selectedDay);
+  const lastDay = () => new Date(year, month, 0).getDate();
+
+  function renderDetails() {
+    $('calendarSelectedDate').textContent = `${year}년 ${month}월 ${selectedDay}일`;
+    const chosen = entries.filter(event => event.start <= selectedDate() && event.end >= selectedDate());
+    details.replaceChildren();
+    if (!chosen.length) details.textContent = '등록된 학사일정이 없어요.';
+    for (const event of chosen) {
+      const row = clone('calendarDetailTemplate');
+      row.querySelector('span').textContent = `${event.name} (${eventRange(event)})${event.description ? ` · ${event.description}` : ''}`;
+      const remove = row.querySelector('button');
+      remove.hidden = event.source !== 'custom';
+      remove.addEventListener('click', () => deleteEvent(event, remove));
+      details.append(row);
     }
   }
-`;
 
-document.head.appendChild(styles);
-
-// ========================================
-// 2. 상단 일정 추가 버튼 제거
-// ========================================
-
-// 일정은 날짜 우클릭으로만 등록
-document.getElementById("openCustomEventModal")?.remove();
-
-// ========================================
-// 3. 학사일정 등록 모달
-// ========================================
-
-// 기존 HTML 모달과 ID가 겹치지 않도록
-// 독립적인 모달 생성
-const editor = document.createElement("dialog");
-editor.className = "calendar-editor";
-
-editor.innerHTML = `
-  <form id="calendarPeriodForm" novalidate>
-
-    <div class="calendar-editor-head">
-      <div>
-        <h2>학사일정 추가</h2>
-        <p>우리 학급의 일정을 직접 등록해 주세요.</p>
-      </div>
-
-      <button
-        type="button"
-        class="calendar-editor-close"
-        aria-label="닫기">
-        ×
-      </button>
-    </div>
-
-    <label for="periodEventStart">
-      일정명 <span class="required-mark">*</span>
-    </label>
-    <input
-      id="periodEventName"
-      type="text"
-      maxlength="100"
-      placeholder="예: 중간고사"
-      required
-    >
-
-    <div class="calendar-editor-dates">
-      <div>
-        <label for="periodEventStart">
-          시작일 <span class="required-mark">*</span>
-        </label>
-        <input
-          id="periodEventStart"
-          type="date"
-          required
-        >
-      </div>
-
-      <div>
-        <label for="periodEventStart">
-          종료일 <span class="required-mark">*</span>
-        </label>
-        <input
-          id="periodEventEnd"
-          type="date"
-          required
-        >
-      </div>
-    </div>
-
-    <label for="periodEventDescription">
-      설명 (선택)
-    </label>
-
-    <textarea
-      id="periodEventDescription"
-      rows="3"
-      maxlength="500"
-      placeholder="일정에 대한 설명"
-    ></textarea>
-
-    <p
-      class="calendar-editor-error"
-      id="periodEventError"
-      role="status">
-    </p>
-
-    <button
-      class="calendar-editor-submit"
-      type="submit">
-      일정 등록하기
-    </button>
-
-  </form>
-`;
-
-document.body.appendChild(editor);
-
-// 모달 요소 연결
-const form = editor.querySelector("#calendarPeriodForm");
-const inputName = editor.querySelector("#periodEventName");
-const inputStart = editor.querySelector("#periodEventStart");
-const inputEnd = editor.querySelector("#periodEventEnd");
-
-const inputDescription = editor.querySelector(
-  "#periodEventDescription"
-);
-
-const formError = editor.querySelector("#periodEventError");
-const submit = editor.querySelector(".calendar-editor-submit");
-
-// 닫기 버튼
-editor
-  .querySelector(".calendar-editor-close")
-  .addEventListener("click", () => editor.close());
-
-// 모달 바깥 클릭 시 닫기
-editor.addEventListener("click", (event) => {
-  if (event.target === editor) {
-    editor.close();
-  }
-});
-
-// ========================================
-// 4. 날짜 우클릭 메뉴
-// ========================================
-
-const contextMenu = document.createElement("div");
-
-contextMenu.className = "calendar-context-menu";
-contextMenu.hidden = true;
-
-contextMenu.innerHTML = `
-  <button type="button">
-    일정 추가하기
-  </button>
-`;
-
-document.body.appendChild(contextMenu);
-
-let contextDate = null;
-
-function closeMenu() {
-  contextMenu.hidden = true;
-}
-
-document.addEventListener("click", closeMenu);
-window.addEventListener("scroll", closeMenu, true);
-window.addEventListener("resize", closeMenu);
-
-// 우클릭 메뉴의 일정 추가하기
-contextMenu
-  .querySelector("button")
-  .addEventListener("click", () => {
-    const date = contextDate;
-    closeMenu();
-    openEditor(date);
-  });
-
-// ========================================
-// 5. 모달 열기
-// ========================================
-
-function openEditor(date = displayDate(selectedDay)) {
-  if (!currentUser || !activeClassroom) return;
-
-  form.reset();
-  formError.textContent = "";
-
-  // 이전 입력 오류 표시 초기화
-  [inputName, inputStart, inputEnd].forEach((input) => {
-    input.removeAttribute("aria-invalid");
-  });
-
-  // 선택한 날짜 설정
-  inputStart.value = date;
-  inputEnd.value = date;
-
-  // 모달 열기
-  editor.showModal();
-  inputName.focus();
-}
-
-// ========================================
-// 6. 선택한 날짜의 일정 표시
-// ========================================
-
-function renderSelectedDate() {
-  dateLabel.textContent =
-    `${year}년 ${month}월 ${selectedDay}일`;
-
-  dayEvents.replaceChildren();
-
-  const date = displayDate(selectedDay);
-
-  const chosen = entries.filter(
-    (event) => event.start <= date && date <= event.end
-  );
-
-  if (chosen.length === 0) {
-    dayEvents.textContent = "등록된 학사일정이 없어요.";
-    return;
-  }
-
-  for (const item of chosen) {
-    const line = document.createElement("div");
-    line.className = "schedule-details-row";
-
-    const description = document.createElement("span");
-
-    let text = item.name;
-
-    // 여러 날에 걸친 일정은 기간 표시
-    if (item.start !== item.end) {
-      text += ` (${item.start} ~ ${item.end})`;
-    }
-
-    if (item.description) {
-      text += ` · ${item.description}`;
-    }
-
-    description.textContent = text;
-    line.appendChild(description);
-
-    // 직접 등록한 일정만 삭제 가능
-    if (item.source === "custom") {
-      const remove = document.createElement("button");
-
-      remove.type = "button";
-      remove.textContent = "삭제";
-
-      remove.addEventListener("click", () => {
-        deleteEvent(item);
-      });
-
-      line.appendChild(remove);
-    }
-
-    dayEvents.appendChild(line);
-  }
-}
-
-// ========================================
-// 7. 달력 생성
-// ========================================
-
-function renderCalendar() {
-  monthLabel.textContent = `${year}년 ${month}월`;
-  days.replaceChildren();
-
-  const firstWeekday = new Date(
-    year,
-    month - 1,
-    1
-  ).getDay();
-
-  const daysInMonth = lastDay();
-
-  const monthStart = isoDate(year, month, 1);
-  const monthEnd = isoDate(year, month, daysInMonth);
-
-  // 6주 고정
-
-  // 해당 월에 필요한 주 수만 계산
-  const weekCount = Math.ceil(
-    (firstWeekday + daysInMonth) / 7
-  );
-
-  // 실제 주 수에 맞춰 높이 분배
-  days.style.gridTemplateRows =
-    `repeat(${weekCount}, minmax(0, 1fr))`;
-
-  for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
-
-    const week = document.createElement("div");
-    week.className = "schedule-week";
-
-    const weekStart = weekIndex * 7 - firstWeekday + 1;
-    const weekEnd = weekStart + 6;
-
-    // 일요일 ~ 토요일
-    for (let col = 0; col < 7; col++) {
-      const day = weekStart + col;
-
-      // 이번 달이 아닌 날짜는 빈 칸
-      if (day < 1 || day > daysInMonth) {
-        const blank = document.createElement("span");
-        blank.className = "schedule-empty";
-
-        week.appendChild(blank);
-        continue;
-      }
-
-      const cell = document.createElement("button");
-      cell.type = "button";
-      cell.className = "schedule-day";
-
-      if (day === selectedDay) {
-        cell.classList.add("selected");
-      }
-
-      const number = document.createElement("span");
-      number.className = "schedule-day-number";
-      number.textContent = String(day);
-
-      cell.appendChild(number);
-
-      // 일반 클릭: 날짜 선택
-      cell.addEventListener("click", () => {
-        selectedDay = day;
-
-        renderSelectedDate();
-        renderCalendar();
-      });
-
-      // 우클릭: 일정 추가 메뉴
-      cell.addEventListener("contextmenu", (event) => {
-        if (!activeClassroom || !currentUser) return;
-
-        event.preventDefault();
-
-        contextDate = displayDate(day);
-
-        contextMenu.hidden = false;
-
-        const menuWidth = contextMenu.offsetWidth || 170;
-        const menuHeight = contextMenu.offsetHeight || 45;
-
-        const x = Math.max(
-          8,
-          Math.min(
-            event.clientX,
-            window.innerWidth - menuWidth - 8
-          )
-        );
-
-        const y = Math.max(
-          8,
-          Math.min(
-            event.clientY,
-            window.innerHeight - menuHeight - 8
-          )
-        );
-
-        contextMenu.style.left = `${x}px`;
-        contextMenu.style.top = `${y}px`;
-      });
-
-      week.appendChild(cell);
-    }
-
-    // 이번 주에 표시할 일정
-    const segments = entries
-      .filter(
-        (event) =>
-          event.start <= monthEnd &&
-          event.end >= monthStart
-      )
-      .map((event) => {
-        const eventStartInThisMonth =
-          Number(event.start.slice(0, 4)) === year &&
-          Number(event.start.slice(5, 7)) === month;
-
-        const eventEndInThisMonth =
-          Number(event.end.slice(0, 4)) === year &&
-          Number(event.end.slice(5, 7)) === month;
-
-        const start = Math.max(
-          1,
-          weekStart,
-          eventStartInThisMonth
-            ? Number(event.start.slice(8, 10))
-            : 1
-        );
-
-        const end = Math.min(
-          daysInMonth,
-          weekEnd,
-          eventEndInThisMonth
-            ? Number(event.end.slice(8, 10))
-            : daysInMonth
-        );
-
-        return { event, start, end };
-      })
-      .filter((segment) => segment.start <= segment.end)
-      .sort(
-        (a, b) =>
-          a.start - b.start ||
-          (b.end - b.start) - (a.end - a.start)
-      );
-
-    // 기간 일정 막대
-    const bars = document.createElement("div");
-    bars.className = "schedule-bars";
-
-    const occupied = [];
-
-    for (const segment of segments) {
-      const colStart = segment.start - weekStart + 1;
-      const colEnd = segment.end - weekStart + 1;
-
-      // 일정이 겹치면 다음 줄에 표시
-      let lane = 0;
-
-      while (
-        occupied[lane]?.some(
-          ([a, b]) => colStart <= b && colEnd >= a
-        )
-      ) {
-        lane++;
-      }
-
-      // 한 주에 표시하는 막대는 최대 4개 줄
-      // 나머지 일정은 날짜를 클릭하면 상세 영역에 표시
-      if (lane > 3) continue;
-
-      occupied[lane] ||= [];
-      occupied[lane].push([colStart, colEnd]);
-
-      const bar = document.createElement("div");
-
-      const startsHere =
-        segment.event.start === displayDate(segment.start);
-
-      const endsHere =
-        segment.event.end === displayDate(segment.end);
-
-      let shape = "middle";
-
-      if (startsHere && endsHere) {
-        shape = "single";
-      } else if (startsHere) {
-        shape = "starts";
-      } else if (endsHere) {
-        shape = "ends";
-      }
-
-      bar.className = `schedule-bar ${shape}`;
-
-      if (segment.event.source === "custom") {
-        bar.classList.add("custom");
-      }
-
-      bar.style.gridColumn =
-        `${colStart} / ${colEnd + 1}`;
-
-      bar.style.gridRow = `${lane + 1}`;
-
-      bar.textContent = segment.event.name;
-
-      bar.title =
-        `${segment.event.name} (${segment.event.start} ~ ${segment.event.end})`;
-
-      bars.appendChild(bar);
-    }
-
-    week.appendChild(bars);
-    days.appendChild(week);
-  }
-}
-
-// ========================================
-// 8. 중복 학교 선택
-// ========================================
-
-function showSchoolChoices(schools) {
-  let choices = $("neisSchoolChoices");
-
-  if (!choices) {
-    choices = document.createElement("div");
-    choices.id = "neisSchoolChoices";
-
-    days.before(choices);
-  }
-
-  choices.replaceChildren();
-  choices.hidden = false;
-
-  for (const school of schools) {
-    const button = document.createElement("button");
-
-    button.type = "button";
-
-    button.textContent =
-      `${school.name} (${school.address || "주소 없음"})`;
-
-    button.addEventListener("click", () => {
-      selectedSchool = school;
-      choices.hidden = true;
-      loadSchedule();
-    });
-
-    choices.appendChild(button);
-  }
-}
-
-// ========================================
-// 9. Supabase 직접 등록 일정 조회
-// ========================================
-
-async function loadCustomEvents(classId, y, m) {
-  const start = isoDate(y, m, 1);
-
-  const end = isoDate(
-    y,
-    m,
-    new Date(y, m, 0).getDate()
-  );
-
-  const { data, error } = await supabase
-    .from("custom_calendar_events")
-    .select("id, event_date, end_date, name, description")
-    .eq("classroom_id", classId)
-
-    // 현재 달에 하루라도 겹치는 일정 조회
-    .lte("event_date", end)
-    .gte("end_date", start)
-
-    .order("event_date", { ascending: true });
-
-  if (error) throw error;
-
-  return (data || []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    description: row.description || "",
-    start: normalizedDate(row.event_date),
-    end: normalizedDate(row.end_date || row.event_date),
-    source: "custom"
-  }));
-}
-
-// ========================================
-// 10. 나이스 + 직접 등록 일정 조회
-// ========================================
-
-async function loadSchedule() {
-  if (!activeClassroom) return;
-
-  const token = ++loadToken;
-
-  const classId = activeClassroom.id;
-  const y = year;
-  const m = month;
-
-  entries = [];
-
-  renderCalendar();
-  renderSelectedDate();
-
-  const schoolName = activeClassroom.school_name || "학교";
-
-  // 학교명만 표시
-  title.textContent = `${schoolName} 학사일정`;
-  footer.textContent = schoolName;
-
-  // 나이스와 직접 등록 일정을 각각 조회
-  const [neisResult, customResult] =
-    await Promise.allSettled([
-      supabase.functions.invoke("neis-calendar", {
-        body: {
-          classroomId: classId,
-          year: y,
-          month: m,
-
-          ...(selectedSchool
-            ? {
-              officeCode: selectedSchool.officeCode,
-              schoolCode: selectedSchool.schoolCode
-            }
-            : {})
+  function renderCalendar() {
+    $('calendarMonth').textContent = `${year}년 ${month}월`;
+    days.replaceChildren();
+    const firstWeekday = new Date(year, month - 1, 1).getDay();
+    const count = lastDay();
+    const monthStart = isoDate(year, month, 1);
+    const monthEnd = isoDate(year, month, count);
+    const weeks = Math.ceil((firstWeekday + count) / 7);
+    for (let index = 0; index < weeks; index++) {
+      const week = clone('calendarWeekTemplate');
+      const bars = week.querySelector('.schedule-bars');
+      const weekStart = index * 7 - firstWeekday + 1;
+      for (let col = 0; col < 7; col++) {
+        const day = weekStart + col;
+        if (day < 1 || day > count) {
+          week.insertBefore(clone('calendarBlankTemplate'), bars);
+          continue;
         }
-      }),
-
-      loadCustomEvents(classId, y, m)
-    ]);
-
-  // 이전 요청이 뒤늦게 완료된 경우 무시
-  if (
-    token !== loadToken ||
-    activeClassroom?.id !== classId
-  ) {
-    return;
-  }
-
-  let schoolEvents = [];
-  let customEvents = [];
-
-  // 나이스 학사일정
-  if (neisResult.status === "fulfilled") {
-    const { data, error } = neisResult.value;
-
-    if (error) {
-      console.warn("나이스 조회 오류:", error);
-    } else if (data?.status === "choose-school") {
-      showSchoolChoices(data.schools || []);
-    } else if (data?.status === "ok") {
-      schoolEvents = (data.events || []).map((event) => ({
-        name: event.name,
-        description: event.description || "",
-        start: normalizedDate(event.date),
-        end: normalizedDate(event.date),
-        source: "neis"
-      }));
-    } else {
-      console.warn("나이스 조회 응답:", data);
-    }
-  } else {
-    console.warn("나이스 호출 실패:", neisResult.reason);
-  }
-
-  // 관리자가 직접 등록한 일정
-  if (customResult.status === "fulfilled") {
-    customEvents = customResult.value;
-  } else {
-    console.error(
-      "직접 등록 일정 조회 실패:",
-      customResult.reason
-    );
-  }
-
-  // 모든 일정 합치기
-  entries = [
-    ...schoolEvents,
-    ...customEvents
-  ].filter((event) => event.start && event.end);
-
-  renderCalendar();
-  renderSelectedDate();
-}
-
-// ========================================
-// 필수 입력 검사
-// ========================================
-
-// 입력 오류 표시/해제
-function markInvalid(input, invalid) {
-  if (invalid) {
-    input.setAttribute("aria-invalid", "true");
-  } else {
-    input.removeAttribute("aria-invalid");
-  }
-}
-
-// 입력값 검사
-function validateCalendarForm() {
-  const requiredInputs = [
-    inputName,
-    inputStart,
-    inputEnd
-  ];
-
-  let firstInvalid = null;
-
-  // 모든 필수 입력값을 개별 검사
-  for (const input of requiredInputs) {
-    const isEmpty = !input.value.trim();
-
-    markInvalid(input, isEmpty);
-
-    if (isEmpty && !firstInvalid) {
-      firstInvalid = input;
+        const cell = clone('calendarDayTemplate');
+        const date = isoDate(year, month, day);
+        cell.querySelector('span').textContent = day;
+        cell.classList.toggle('selected', day === selectedDay);
+        cell.setAttribute('aria-pressed', String(day === selectedDay));
+        cell.setAttribute('aria-label', `${year}년 ${month}월 ${day}일`);
+        if (date === todayISO()) cell.setAttribute('aria-current', 'date');
+        cell.addEventListener('click', () => { selectedDay = day; renderCalendar(); renderDetails(); });
+        cell.addEventListener('contextmenu', event => { event.preventDefault(); openEditor(date); });
+        week.insertBefore(cell, bars);
+      }
+      const segments = entries.filter(event => event.start <= monthEnd && event.end >= monthStart)
+        .map(event => ({
+          event,
+          start: Math.max(1, weekStart, event.start >= monthStart ? Number(event.start.slice(8)) : 1),
+          end: Math.min(count, weekStart + 6, event.end <= monthEnd ? Number(event.end.slice(8)) : count),
+        })).filter(item => item.start <= item.end)
+        .sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+      const occupied = [];
+      for (const segment of segments) {
+        const first = segment.start - weekStart + 1;
+        const last = segment.end - weekStart + 1;
+        let lane = 0;
+        while (occupied[lane]?.some(([a, b]) => first <= b && last >= a)) lane++;
+        // 날짜를 선택하면 막대 개수와 관계없이 모든 일정을 볼 수 있습니다.
+        if (lane >= 4) continue;
+        occupied[lane] ||= [];
+        occupied[lane].push([first, last]);
+        const bar = clone('calendarBarTemplate');
+        const begins = segment.event.start === isoDate(year, month, segment.start);
+        const ends = segment.event.end === isoDate(year, month, segment.end);
+        const shape = begins && ends ? 'single' : begins ? 'starts' : ends ? 'ends' : 'middle';
+        bar.classList.add(shape, `column-${first}`, `end-${last}`, `lane-${lane + 1}`);
+        bar.classList.toggle('custom', segment.event.source === 'custom');
+        bar.textContent = segment.event.name;
+        bar.title = `${segment.event.name} (${eventRange(segment.event)})`;
+        bars.append(bar);
+      }
+      days.append(week);
     }
   }
 
-  if (firstInvalid) {
-    formError.textContent =
-      "필수 항목을 입력해 주세요.";
-
-    firstInvalid.focus();
-    return false;
-  }
-
-  // 날짜 순서 검사
-  if (inputStart.value > inputEnd.value) {
-    markInvalid(inputEnd, true);
-
-    formError.textContent =
-      "종료일은 시작일보다 빠를 수 없어요.";
-
-    inputEnd.focus();
-    return false;
-  }
-
-  // 모든 검사 통과
-  formError.textContent = "";
-  return true;
-}
-
-// 입력을 수정하면 해당 칸의 오류 표시 해제
-[inputName, inputStart, inputEnd].forEach((input) => {
-  input.addEventListener("input", () => {
-    if (input.value.trim()) {
-      markInvalid(input, false);
-    }
-
-    if (
-      inputStart.value &&
-      inputEnd.value &&
-      inputStart.value <= inputEnd.value
-    ) {
-      markInvalid(inputEnd, false);
-    }
-
-    formError.textContent = "";
-  });
-});
-
-
-// ========================================
-// 11. 일정 저장
-// ========================================
-
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  if (!activeClassroom || !currentUser) return;
-
-  const name = inputName.value.trim();
-  const start = inputStart.value;
-  const end = inputEnd.value;
-  const description = inputDescription.value.trim();
-  if (!validateCalendarForm()) {
-    return;
-  }
-  submit.disabled = true;
-  formError.textContent = "저장하고 있어요...";
-
-  try {
-    const { error } = await supabase
-      .from("custom_calendar_events")
-      .insert({
-        classroom_id: activeClassroom.id,
-
-        // 기존 테이블의 컬럼 유지
-        event_date: start,
-        end_date: end,
-        name,
-        description,
-        created_by: currentUser.id
-      });
-
-    if (error) throw error;
-
-    editor.close();
-
-    // 등록한 일정의 시작 월로 이동
-    const saved = new Date(`${start}T12:00:00`);
-
-    year = saved.getFullYear();
-    month = saved.getMonth() + 1;
-    selectedDay = saved.getDate();
-
-    await loadSchedule();
-
-  } catch (error) {
-    console.error("일정 등록 오류:", error);
-
-    formError.textContent =
-      `등록에 실패했어요: ${error.message}`;
-
-  } finally {
-    submit.disabled = false;
-  }
-});
-
-// ========================================
-// 12. 일정 삭제
-// ========================================
-
-async function deleteEvent(item) {
-  if (
-    !activeClassroom ||
-    item.source !== "custom"
-  ) {
-    return;
-  }
-
-  const confirmed = window.confirm(
-    `'${item.name}' 일정을 삭제할까요?`
-  );
-
-  if (!confirmed) return;
-
-  const { error } = await supabase
-    .from("custom_calendar_events")
-    .delete()
-    .eq("id", item.id)
-    .eq("classroom_id", activeClassroom.id);
-
-  if (error) {
-    console.error("일정 삭제 오류:", error);
-
-    window.alert("일정을 삭제하지 못했어요.");
-    return;
-  }
-
-  await loadSchedule();
-}
-
-// ========================================
-// 13. 현재 관리자 학급 조회
-// ========================================
-
-async function loadClassrooms() {
-  const token = ++accountToken;
-
-  ++loadToken;
-
-  activeClassroom = null;
-  currentUser = null;
-  selectedSchool = null;
-  entries = [];
-
-  // 학급 확인 전에는 달력 숨김
-  panel.hidden = true;
-
-  try {
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
-
-    if (token !== accountToken) return;
-
-    if (authError || !user) return;
-
-    // 현재 선생님이 생성한 학급 조회
-    const { data, error } = await supabase
-      .from("checkin_classrooms")
-      .select("id, school_name, created_at")
-      .eq("owner_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (token !== accountToken) return;
-
-    if (error) throw error;
-
-    // 학급이 없으면 달력 표시 안 함
-    if (!data?.length) return;
-
-    currentUser = user;
-    activeClassroom = data[0];
-
-    // 학급이 확인되면 달력 표시
-    panel.hidden = false;
-
-    // 해당 학교 일정 자동 불러오기
-    await loadSchedule();
-
-  } catch (error) {
-    console.error("학급 조회 오류:", error);
-    panel.hidden = true;
-  }
-}
-
-// ========================================
-// 14. 이전 달 / 다음 달
-// ========================================
-
-previous.addEventListener("click", () => {
-  month--;
-
-  if (month < 1) {
-    month = 12;
-    year--;
-  }
-
-  selectedDay = Math.min(selectedDay, lastDay());
-
-  closeMenu();
-  loadSchedule();
-});
-
-next.addEventListener("click", () => {
-  month++;
-
-  if (month > 12) {
-    month = 1;
-    year++;
-  }
-
-  selectedDay = Math.min(selectedDay, lastDay());
-
-  closeMenu();
-  loadSchedule();
-});
-
-// ========================================
-// 15. 로그인 상태 변경
-// ========================================
-
-supabase.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_OUT") {
-    ++accountToken;
-    ++loadToken;
-
-    activeClassroom = null;
-    currentUser = null;
+  async function loadSchedule() {
+    if (!classroom) return;
+    const token = ++request;
+    const current = classroom;
     entries = [];
-
-    panel.hidden = true
-
-    if (editor.open) {
-      editor.close();
+    choices.hidden = true;
+    renderCalendar();
+    renderDetails();
+    days.setAttribute('aria-busy', 'true');
+    status.textContent = '학사일정을 불러오고 있어요...';
+    const [custom, school] = await Promise.allSettled([
+      store.getEvents(current.id, { start: isoDate(year, month, 1), end: isoDate(year, month, lastDay()) }),
+      client.functions.invoke('neis-calendar', {
+        body: { classroomId: current.id, year, month, ...(selectedSchool || {}) },
+      }),
+    ]);
+    if (token !== request) return;
+    const messages = [];
+    if (custom.status === 'fulfilled') entries = custom.value;
+    else messages.push(custom.reason.message);
+    if (school.status === 'fulfilled' && !school.value.error && school.value.data?.status === 'ok') {
+      entries.push(...(school.value.data.events || []).map(event => ({
+        name: event.name, description: event.description || '', source: 'neis',
+        start: normalizedDate(event.date), end: normalizedDate(event.date),
+      })).filter(event => event.start));
+    } else if (school.status === 'fulfilled' && school.value.data?.status === 'choose-school') {
+      choices.replaceChildren();
+      for (const school of school.value.data.schools || []) {
+        const button = clone('calendarSchoolTemplate');
+        button.textContent = `${school.name} (${school.address || '주소 없음'})`;
+        button.addEventListener('click', () => {
+          selectedSchool = { officeCode: school.officeCode, schoolCode: school.schoolCode };
+          void loadSchedule();
+        });
+        choices.append(button);
+      }
+      choices.hidden = false;
+      messages.push('나이스 일정을 확인할 학교를 선택해 주세요.');
+    } else {
+      messages.push('나이스 일정을 불러오지 못했어요. 직접 등록한 일정은 별도로 표시됩니다.');
     }
-
-  } else if (event === "SIGNED_IN") {
-    setTimeout(loadClassrooms, 0);
+    days.setAttribute('aria-busy', 'false');
+    status.textContent = messages.join(' ') || `${current.school.name} · 직접 등록한 일정은 학생에게도 표시됩니다.`;
+    renderCalendar();
+    renderDetails();
   }
-});
 
-// ========================================
-// 16. 최초 실행
-// ========================================
+  function openEditor(date = selectedDate()) {
+    if (!classroom || saving || editor.open) return;
+    form.reset();
+    form.querySelectorAll('[aria-invalid]').forEach(input => input.removeAttribute('aria-invalid'));
+    error.textContent = '';
+    start.value = end.value = date;
+    editor.showModal();
+    name.focus();
+  }
 
-panel.hidden = true;
+  $('openCustomEventModal').addEventListener('click', () => openEditor());
+  $('closeCalendarEditor').addEventListener('click', () => { if (!saving) editor.close(); });
+  editor.addEventListener('click', event => { if (event.target === editor && !saving) editor.close(); });
+  editor.addEventListener('cancel', event => { if (saving) event.preventDefault(); });
+  [name, start, end].forEach(input => input.addEventListener('input', () => {
+    input.removeAttribute('aria-invalid');
+    error.textContent = '';
+  }));
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!classroom || saving) return;
+    const required = [name, start, end];
+    required.forEach(input => input.setAttribute('aria-invalid', String(!input.value.trim())));
+    const invalid = required.find(input => !input.value.trim());
+    if (invalid || start.value > end.value) {
+      const target = invalid || end;
+      target.setAttribute('aria-invalid', 'true');
+      target.focus();
+      error.textContent = invalid ? '필수 항목을 입력해 주세요.' : '종료일은 시작일보다 빠를 수 없어요.';
+      return;
+    }
+    const current = classroom;
+    const value = { name: name.value, start: start.value, end: end.value, description: description.value };
+    saving = true;
+    submit.disabled = true;
+    $('closeCalendarEditor').disabled = true;
+    error.textContent = '저장하고 있어요...';
+    try {
+      await store.addEvent(current, value);
+      if (current.id !== classroom?.id) return;
+      editor.close();
+      [year, month, selectedDay] = value.start.split('-').map(Number);
+      await loadSchedule();
+    } catch (failure) {
+      error.textContent = `등록에 실패했어요: ${failure.message}`;
+    } finally {
+      saving = false;
+      submit.disabled = false;
+      $('closeCalendarEditor').disabled = false;
+    }
+  });
 
-loadClassrooms();
+  async function deleteEvent(event, button) {
+    if (!classroom || !window.confirm(`'${event.name}' 일정을 삭제할까요?`)) return;
+    const currentId = classroom.id;
+    button.disabled = true;
+    try {
+      await store.deleteEvent(currentId, event.id);
+      if (classroom?.id === currentId) await loadSchedule();
+    } catch (failure) {
+      if (classroom?.id === currentId) status.textContent = `삭제에 실패했어요: ${failure.message}`;
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  for (const [id, offset] of [['calendarPrev', -1], ['calendarNext', 1]]) {
+    $(id).addEventListener('click', () => {
+      const date = new Date(year, month - 1 + offset, 1);
+      year = date.getFullYear();
+      month = date.getMonth() + 1;
+      selectedDay = Math.min(selectedDay, lastDay());
+      void loadSchedule();
+    });
+  }
+  $('calendarRefresh').addEventListener('click', () => { void loadSchedule(); });
+
+  return {
+    setClassroom(value) {
+      if (classroom?.id === value?.id) return;
+      ++request;
+      classroom = value || null;
+      entries = [];
+      selectedSchool = null;
+      if (editor.open) editor.close();
+      panel.hidden = !classroom;
+      if (!classroom) return;
+      $('adminCalendarTitle').textContent = `${classroom.school.name} 학사일정`;
+      void loadSchedule();
+    },
+  };
+}

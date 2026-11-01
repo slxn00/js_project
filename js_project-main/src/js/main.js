@@ -39,4 +39,16 @@ async function choosePage() {
   }
 }
 
-if (!redirectAuthCallbackError()) choosePage();
+if (!redirectAuthCallbackError()) {
+  if (message) {
+    void choosePage();
+  } else {
+    // index.html에서도 같은 진입 로직을 사용하며 OAuth 콜백을 먼저 처리합니다.
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      window.location.replace(!error && data.session ? '/main.html' : '/login.html');
+    } catch {
+      window.location.replace('/login.html');
+    }
+  }
+}

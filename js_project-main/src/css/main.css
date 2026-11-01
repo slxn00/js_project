@@ -124,7 +124,7 @@ button {
 /* 클래스 / 멤버 / 게시판 */
 .tabs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     height: 35px;
     background: #286edc;
 }
@@ -268,9 +268,6 @@ button {
         min-height: calc(100vh - 35px);
     }
 
-    .main-content {
-        display: none;
-    }
 
     .sidebar {
         flex: 1;
@@ -279,35 +276,6 @@ button {
         border-radius: 0;
         border-left: 0;
     }
-}
-
-/* 학급 생성 모달 배경 */
-.class-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: rgba(24, 36, 58, 0.38);
-
-    backdrop-filter: blur(9px);
-    -webkit-backdrop-filter: blur(9px);
-}
-
-.class-modal-overlay[hidden] {
-    display: none;
-}
-
-/* 기존 학급 생성 화면 표시 */
-#createClassFrame {
-    display: block;
-    width: 100%;
-    height: 100dvh;
-    border: none;
-    background: transparent;
 }
 
 /* 실제 메인화면 위에 학급 생성창 표시 */
@@ -392,7 +360,7 @@ button {
     text-align: center;
 }
 
-.sidebar-body>.tab-panel>.create-class-button {
+.class-panel-content>.create-class-button {
     display: block;
     width: calc(100% - 24px);
     margin: 16px auto;
@@ -400,28 +368,11 @@ button {
 
 .sidebar-actions { margin-top: auto; padding: 16px 12px; border-top: 1px solid #f0f2f6; }
 .join-class-button { width: 100%; min-height: 44px; padding: 12px; border: 0; border-radius: 7px; background: #3182F6; color: white; font-size: 13px; font-weight: 600; }
-.join-class-button:hover, .join-submit:hover { background: #2473e6; }
+.join-class-button:hover { background: #2473e6; }
 .join-class-summary { margin: 12px 0 0; color: #687386; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .join-class-summary.is-error { color: #cf5050; }
 .join-class-button:disabled { opacity: .6; cursor: wait; }
 
-.join-class-dialog { position: fixed; width: min(284px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: 32px 30px 30px; border: 1px solid #e6e8ed; border-radius: 16px; background: #fff; color: #1e293b; box-shadow: 0 14px 32px #17233d16, 0 2px 5px #17233d08; }
-.join-class-dialog::backdrop { background: #17243b44; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.join-close { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; color: #a0a8b5; font-size: 22px; }
-.join-name-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
-.join-name-input { display: block; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #e6e8ef; border-radius: 12px; background: #f8f9fb; color: #1e293b; font: inherit; font-size: 16px; outline: none; }
-.join-name-input::placeholder { color: #9aa3b2; font-size: 13px; }
-.join-code-group { min-width: 0; margin: 34px 0 0; padding: 0; border: 0; }
-.join-code-group legend { width: 100%; margin-bottom: 18px; padding: 0; text-align: center; font-size: 14px; font-weight: 700; }
-.join-code-inputs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
-.join-code-digit { width: 100%; min-width: 0; height: 50px; padding: 0; border: 1px solid #e6e8ef; border-radius: 12px; background: #f8f9fb; color: #1e293b; font: inherit; font-size: 19px; font-weight: 600; text-align: center; text-transform: uppercase; outline: none; }
-.join-name-input:focus, .join-code-digit:focus { border-color: #3182F6; box-shadow: 0 0 0 2px #3182F615; }
-.join-class-dialog [aria-invalid="true"] { border-color: #df6a6a; }
-.join-class-status { min-height: 18px; margin: 15px 0 16px; color: #cf5050; font-size: 11px; line-height: 1.6; }
-.join-submit { display: block; width: 100%; min-height: 50px; border: 0; border-radius: 10px; background: #3182F6; color: white; font-size: 15px; font-weight: 700; box-shadow: 0 6px 14px #3182F625; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-
-.join-submit:disabled { opacity: .6; cursor: wait; }
 .members-view { padding: 22px 16px; }
 .members-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
 .members-heading h2 { margin: 0; font-size: 17px; }
@@ -446,8 +397,7 @@ button {
 .member-menu button:hover, .member-menu button:focus-visible { outline: none; background: #f3f7ff; color: #3182F6; }
 .member-menu .remove-member-button { margin-top: 3px; color: #d64e4e; }
 .member-menu .remove-member-button:hover, .member-menu .remove-member-button:focus-visible { background: #fff1f1; color: #c74747; }
-.delete-class-button { padding: 6px 8px; border: 0; border-radius: 5px; background: #fff0f0; color: #c74747; font-size: 11px; }
-.delete-class-button { align-self: flex-end; margin-top: 8px; }
+.delete-class-button { align-self: flex-end; margin-top: 8px; padding: 6px 8px; border: 0; border-radius: 5px; background: #fff0f0; color: #c74747; font-size: 11px; }
 .member-row strong { color: #17233d; font-size: 14px; overflow-wrap: anywhere; }
 .member-row small { color: #8b96a8; font-size: 11px; }
 .classroom-manage-dialog { width: min(360px, calc(100vw - 32px)); padding: 24px; border: 1px solid #e6e8ed; border-radius: 16px; color: #17233d; box-shadow: 0 16px 50px #17233d22; }
@@ -463,3 +413,7 @@ button {
 .management-buttons [type="submit"] { background: #3182F6; color: white; }
 .management-buttons .danger-button { background: #d64e4e; }
 .management-buttons button:disabled { opacity: .6; cursor: wait; }
+
+.tabs.has-members { grid-template-columns: repeat(3, 1fr); }
+body.modal-open { overflow: hidden; }
+[hidden] { display: none !important; }

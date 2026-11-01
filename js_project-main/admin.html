@@ -3,7 +3,6 @@
 
 <head>
     <link rel="icon" type="image/png" href="/js_project_icon.png">
-    <link rel="icon" href="/js_project_icon.png">
     <link rel="apple-touch-icon" href="/ios_icon.png">
     <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
@@ -14,7 +13,6 @@
     <link rel="stylesheet" href="/src/css/main.css">
     <link rel="stylesheet" href="/src/css/admin.css">
     <script type="module" src="/src/js/admin.js"></script>
-    <script type="module" src="/src/js/admin-calendar.js"></script>
 </head>
 
 
@@ -34,7 +32,7 @@
             <main class="main-content" aria-label="학교 학사일정">
                 <div class="admin-overview">
 
-                    <section class="calendar-panel" aria-labelledby="adminCalendarTitle" hidden>
+                    <section id="adminCalendar" class="calendar-panel" aria-labelledby="adminCalendarTitle" hidden>
 
 
                         <div class="calendar-panel-top">
@@ -49,6 +47,7 @@
 
                             <div class="calendar-nav">
 
+                                <button type="button" id="calendarRefresh" class="calendar-refresh">새로고침</button>
                                 <button type="button" id="calendarPrev" aria-label="이전 달">‹</button>
                                 <strong id="calendarMonth" aria-live="polite"></strong>
                                 <button type="button" id="calendarNext" aria-label="다음 달">›</button>
@@ -65,6 +64,8 @@
                             <span>토</span>
                         </div>
 
+                        <div id="neisSchoolChoices" hidden></div>
+
                         <div id="calendarDays" class="calendar-days" role="group" aria-label="학사일정 날짜 선택">
                         </div>
 
@@ -73,9 +74,9 @@
                                 날짜를 선택해 주세요
                             </strong>
 
-                            <p id="calendarDayEvents">
+                            <div id="calendarDayEvents">
                                 등록된 학사일정이 아직 없어요.
-                            </p>
+                            </div>
                         </div>
 
                         <p id="calendarStatus" class="calendar-footnote">
@@ -165,35 +166,6 @@
         </div>
     </div>
 
-    <dialog id="joinClassDialog" class="join-class-dialog" aria-labelledby="joinClassTitle">
-        <button type="button" id="closeJoinClass" class="join-close" aria-label="학급 입장 닫기">×</button>
-        <h2 id="joinClassTitle" class="visually-hidden">학급 입장</h2>
-        <form id="joinClassForm" novalidate>
-            <label class="join-name-label" for="joinName">성함</label>
-            <input id="joinName" class="join-name-input" name="studentName" placeholder="김길동" autocomplete="name"
-                maxlength="50" required />
-
-            <fieldset class="join-code-group">
-                <legend>학급코드</legend>
-                <div class="join-code-inputs">
-                    <input class="join-code-digit" aria-label="학급코드 첫 번째 자리" name="code1" maxlength="1"
-                        autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 두 번째 자리" name="code2" maxlength="1"
-                        autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 세 번째 자리" name="code3" maxlength="1"
-                        autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 네 번째 자리" name="code4" maxlength="1"
-                        autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                    <input class="join-code-digit" aria-label="학급코드 다섯 번째 자리" name="code5" maxlength="1"
-                        autocapitalize="characters" autocomplete="off" spellcheck="false" required />
-                </div>
-            </fieldset>
-
-            <p id="joinClassStatus" class="join-class-status" role="status" aria-live="polite"></p>
-            <button type="submit" class="join-submit">입장</button>
-        </form>
-    </dialog>
-
     <dialog id="classroomManageDialog" class="classroom-manage-dialog" aria-labelledby="classroomManageTitle">
         <form novalidate>
             <h2 id="classroomManageTitle" data-title></h2>
@@ -209,41 +181,6 @@
             </div>
         </form>
     </dialog>
-
-    <!-- 학사일정 직접 등록 모달 -->
-    <dialog id="customEventDialog" class="custom-event-dialog" aria-labelledby="customEventDialogTitle">
-
-        <div class="custom-event-modal-content">
-
-            <div class="custom-event-modal-header">
-
-                <div>
-                    <span class="custom-event-eyebrow">
-                        SCHOOL CALENDAR
-                    </span>
-
-                    <h2 id="customEventDialogTitle">
-                        학사일정 추가
-                    </h2>
-
-                    <p>
-                        우리 학급의 일정을 직접 등록해 주세요.
-                    </p>
-                </div>
-
-                <button type="button" id="closeCustomEventModal" class="custom-event-close" aria-label="일정 등록 창 닫기">
-                    ×
-                </button>
-
-            </div>
-
-            <!-- 기존 JS의 일정 등록 폼이 여기에 들어감 -->
-            <div id="customEventFormMount"></div>
-
-        </div>
-
-    </dialog>
-
 
     <!-- 설정 모달 -->
     <div id="settingsModal" class="settings-overlay" hidden>
@@ -263,40 +200,89 @@
         </section>
     </div>
 
-    <dialog id="customEventDialog" class="custom-event-dialog">
-        <form id="customEventForm" class="custom-event-form" novalidate>
-            <div class="custom-event-header">
-                <h3>일정 추가</h3>
-                <button type="button" id="closeCustomEventDialog" class="custom-event-close">×</button>
-            </div>
-
-            <label class="custom-event-label" for="customEventTitle">일정명</label>
-            <input id="customEventTitle" class="custom-event-input" type="text" maxlength="60" placeholder="예: 중간고사"
-                required>
-
-            <label class="custom-event-label" for="customEventDescription">설명</label>
-            <textarea id="customEventDescription" class="custom-event-textarea" rows="3"
-                placeholder="필요하면 설명을 적어 주세요."></textarea>
-
-            <div class="custom-event-range">
+    <dialog id="calendarEditor" class="calendar-editor" aria-labelledby="calendarEditorTitle">
+        <form id="calendarPeriodForm" novalidate>
+            <div class="calendar-editor-head">
                 <div>
-                    <label class="custom-event-label" for="customEventStartDate">시작일</label>
-                    <input id="customEventStartDate" class="custom-event-input" type="date" required>
+                    <h2 id="calendarEditorTitle">학사일정 추가</h2>
+                    <p>등록한 일정은 우리 학급 학생에게 표시됩니다.</p>
+                </div>
+                <button type="button" id="closeCalendarEditor" class="calendar-editor-close" aria-label="닫기">×</button>
+            </div>
+            <label for="periodEventName">일정명 <span class="required-mark">*</span></label>
+            <input id="periodEventName" type="text" maxlength="100" placeholder="예: 중간고사" required>
+            <div class="calendar-editor-dates">
+                <div>
+                    <label for="periodEventStart">시작일 <span class="required-mark">*</span></label>
+                    <input id="periodEventStart" type="date" required>
                 </div>
                 <div>
-                    <label class="custom-event-label" for="customEventEndDate">종료일</label>
-                    <input id="customEventEndDate" class="custom-event-input" type="date" required>
+                    <label for="periodEventEnd">종료일 <span class="required-mark">*</span></label>
+                    <input id="periodEventEnd" type="date" required>
                 </div>
             </div>
-
-            <p id="customEventStatus" class="custom-event-status" role="status"></p>
-
-            <div class="custom-event-actions">
-                <button type="button" id="cancelCustomEvent" class="custom-event-cancel">취소</button>
-                <button type="submit" class="custom-event-submit">저장</button>
-            </div>
+            <label for="periodEventDescription">설명 (선택)</label>
+            <textarea id="periodEventDescription" rows="3" maxlength="500" placeholder="일정에 대한 설명"></textarea>
+            <p id="periodEventError" class="calendar-editor-error" role="status"></p>
+            <button type="submit" class="calendar-editor-submit">일정 등록하기</button>
         </form>
     </dialog>
+
+    <template id="calendarWeekTemplate"><div class="schedule-week"><div class="schedule-bars" aria-hidden="true"></div></div></template>
+    <template id="calendarBlankTemplate"><span class="schedule-empty" aria-hidden="true"></span></template>
+    <template id="calendarDayTemplate"><button type="button" class="schedule-day"><span class="schedule-day-number"></span></button></template>
+    <template id="calendarBarTemplate"><div class="schedule-bar"></div></template>
+    <template id="calendarSchoolTemplate"><button type="button"></button></template>
+    <template id="calendarDetailTemplate">
+        <div class="schedule-details-row"><span></span><button type="button">삭제</button></div>
+    </template>
+    <template id="adminClassCardTemplate">
+        <article class="created-class-card">
+            <h3></h3><p></p><strong class="class-code"></strong><small>학급 참여코드</small>
+            <button type="button" class="delete-class-button"></button>
+        </article>
+    </template>
+    <template id="adminClassPanelTemplate">
+        <div class="class-panel-content">
+            <h2 class="class-section-title">내 클래스</h2>
+            <div class="created-classes" data-joined></div>
+            <p id="joinedClassesStatus" class="class-list-status" role="status"></p>
+            <h2 class="class-section-title" data-owned-heading>관리 중인 클래스</h2>
+            <div class="created-classes" data-owned></div>
+            <button type="button" class="create-class-button">+ 새 학급 생성하기</button>
+        </div>
+    </template>
+    <template id="membersPanelTemplate">
+        <section class="members-view">
+            <div class="members-heading"><h2>학급 멤버</h2><span id="memberCount">0명</span></div>
+            <button type="button" id="refreshMembers" class="refresh-members">새로고침</button>
+            <p id="membersStatus" class="members-status" role="status"></p>
+            <ul id="membersList" class="members-list"></ul>
+        </section>
+    </template>
+    <template id="memberRowTemplate">
+        <li class="member-row">
+            <span class="member-avatar" aria-hidden="true"></span>
+            <div><strong></strong><small></small></div>
+            <details class="member-actions" name="member-actions">
+                <summary class="member-menu-toggle" title="학생 관리">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
+                    </svg>
+                </summary>
+                <div class="member-menu">
+                    <button type="button" data-edit>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15z"/></svg>
+                        <span>이름 수정</span>
+                    </button>
+                    <button type="button" class="remove-member-button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></svg>
+                        <span>학생 삭제</span>
+                    </button>
+                </div>
+            </details>
+        </li>
+    </template>
 </body>
 
 

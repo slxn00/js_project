@@ -1,8 +1,17 @@
 import { supabase } from './supabaseClient.js';
 import { createClassroomStore, classroomError } from './classroom-store.js';
+import { createCalendarStore, eventTiming, eventRange, todayISO } from './calendar.js';
 
 const $ = (selector) => document.querySelector(selector);
 const classrooms = createClassroomStore(supabase);
+const calendar = createCalendarStore(supabase);
+const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
+const scheduleStatus = $('#scheduleStatus');
+const scheduleList = $('#studentScheduleList');
+const refreshSchedule = $('#refreshSchedule');
+const includePast = $('#includePastEvents');
+let scheduleRequest = 0;
+let scheduleLoading = false;
 const actionButton = $('#studentAction');
 const status = $('#studentStatus');
 const classCard = $('#studentClassCard');
@@ -25,34 +34,96 @@ function setActionState() {
 }
 
 function renderClasses() {
-  classCard.replaceChildren();
-  if (!joinedClasses.length) {
-    const title = document.createElement('strong');
-    title.textContent = '아직 가입한 학급이 없어요.';
-    const detail = document.createElement('p');
-    detail.textContent = '하단의 학급 입장 버튼을 눌러 학급 참여 코드를 입력하세요.';
-    classCard.append(title, detail);
-  } else {
-    const school = joinedClasses[0];
-    const heading = document.createElement('h3');
-    heading.textContent = school.className;
-    const schoolName = document.createElement('p');
-    schoolName.textContent = school.school?.name || '학교 정보 없음';
-    const codeLabel = document.createElement('span');
-    codeLabel.className = 'code-label';
-    codeLabel.textContent = '학급 참여 코드';
-    const code = document.createElement('strong');
-    code.className = 'class-code';
-    code.textContent = school.code;
-    const leave = document.createElement('button');
-    leave.type = 'button';
-    leave.className = 'leave-button';
-    leave.textContent = '학급 탈퇴';
-    leave.addEventListener('click', () => leaveClass(school));
-    classCard.append(heading, schoolName, codeLabel, code, leave);
+  const school = joinedClasses[0];
+  const content = clone(school ? 'studentClassTemplate' : 'studentClassEmptyTemplate');
+  if (school) {
+    content.querySelector('h3').textContent = school.className;
+    content.querySelector('p').textContent = school.school?.name || '학교 정보 없음';
+    content.querySelector('.class-code').textContent = school.code;
+    content.querySelector('button').addEventListener('click', () => leaveClass(school));
   }
+  classCard.replaceChildren(content);
+  scheduleList.replaceChildren();
+  void loadSchedule();
   setActionState();
 }
+
+async function loadSchedule({ silent = false } = {}) {
+  const token = ++scheduleRequest;
+  const school = joinedClasses[0];
+  const today = todayISO();
+  $('#todayDate').textContent = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'full', timeZone: 'Asia/Seoul' }).format(new Date());
+  $('#scheduleSummary').textContent = includePast.checked ? '지난 일정까지 모두 표시' : '예정·진행 중인 일정';
+  refreshSchedule.disabled = true;
+  if (!school) {
+    scheduleList.replaceChildren();
+    scheduleLoading = false;
+    scheduleList.setAttribute('aria-busy', 'false');
+    scheduleStatus.classList.remove('error');
+    scheduleStatus.textContent = '학급에 입장하면 선생님이 등록한 학사일정을 볼 수 있어요.';
+    return;
+  }
+  scheduleLoading = true;
+  scheduleList.setAttribute('aria-busy', 'true');
+  scheduleStatus.classList.remove('error');
+  if (!silent) scheduleStatus.textContent = '학사일정을 불러오고 있어요...';
+  try {
+    const events = await calendar.getEvents(school.id, includePast.checked ? {} : { start: today });
+    if (token !== scheduleRequest) return;
+    const rows = [];
+    for (const event of events) {
+      const row = clone('studentEventTemplate');
+      const timing = eventTiming(event, today);
+      row.dataset.state = timing.state;
+      row.querySelector('h3').textContent = event.name;
+      row.querySelector('.event-date').textContent = eventRange(event);
+      const description = row.querySelector('.event-description');
+      description.textContent = event.description;
+      description.hidden = !event.description;
+      row.querySelector('.dday-badge').textContent = timing.label;
+      row.querySelector('.event-state').textContent = {
+        upcoming: '시작일까지', today: '오늘 시작', ongoing: '기간 일정', past: '종료된 일정',
+      }[timing.state];
+      rows.push(row);
+    }
+    scheduleList.replaceChildren(...rows);
+    scheduleStatus.textContent = events.length ? `${school.className} · ${events.length}개의 일정` :
+      includePast.checked ? '등록된 학사일정이 아직 없어요.' : '예정·진행 중인 학사일정이 없어요.';
+  } catch (error) {
+    if (token !== scheduleRequest) return;
+    scheduleList.replaceChildren();
+    scheduleStatus.classList.add('error');
+    scheduleStatus.textContent = `${error.message} 새로고침으로 다시 시도해 주세요.`;
+  } finally {
+    if (token === scheduleRequest) {
+      scheduleLoading = false;
+      refreshSchedule.disabled = false;
+      scheduleList.setAttribute('aria-busy', 'false');
+    }
+  }
+}
+
+refreshSchedule.addEventListener('click', () => { void loadSchedule(); });
+includePast.addEventListener('change', () => { void loadSchedule(); });
+window.addEventListener('focus', () => { if (ready) void loadSchedule({ silent: true }); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && ready) void loadSchedule({ silent: true });
+});
+// 다른 기기에서 등록·삭제한 일정과 자정 이후의 D-day를 갱신합니다.
+const scheduleTimer = window.setInterval(() => {
+  if (!document.hidden && ready && !scheduleLoading) void loadSchedule({ silent: true });
+}, 30000);
+window.addEventListener('pagehide', event => {
+  if (!event.persisted) window.clearInterval(scheduleTimer);
+});
+supabase.auth.onAuthStateChange(event => {
+  if (event === 'SIGNED_OUT') {
+    joinedClasses = [];
+    ready = false;
+    renderClasses();
+    window.location.replace('/login.html');
+  }
+});
 
 async function loadStudent() {
   ready = false;
@@ -80,6 +151,7 @@ async function loadStudent() {
   } catch (error) {
     showStatus(`학급 정보를 불러오지 못했어요: ${error.message}`, 'error');
     classCard.textContent = '데이터베이스 연결을 확인해 주세요.';
+    scheduleStatus.textContent = '학급 정보를 확인한 뒤 학사일정을 불러올 수 있어요.';
   }
 }
 
@@ -251,5 +323,4 @@ $('#studentLogout').addEventListener('click', async () => {
   else window.location.replace('/login.html');
 });
 
-$('#todayDate').textContent = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'full' }).format(new Date());
 void loadStudent();
