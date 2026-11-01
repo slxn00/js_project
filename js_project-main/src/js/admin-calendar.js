@@ -242,7 +242,9 @@ export function createAdminCalendar(client) {
     if (custom.status === 'fulfilled') entries = custom.value;
     else messages.push(custom.reason.message);
     if (school.status === 'fulfilled' && !school.value.error && school.value.data?.status === 'ok') {
-      entries.push(...(school.value.data.events || []).map(event => ({
+      entries.push(...(school.value.data.events || [])
+        .filter(event => !/^토요일?휴업일$/.test((event.name || '').replace(/\s/g, '')))
+        .map(event => ({
         name: event.name, description: event.description || '', source: 'neis',
         start: normalizedDate(event.date), end: normalizedDate(event.date),
         isHoliday: event.isHoliday,
