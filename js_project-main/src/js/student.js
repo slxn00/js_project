@@ -1,10 +1,12 @@
 import { supabase } from './supabaseClient.js';
-import { createClassroomStore, classroomError } from './classroom-store.js';
+import { createClassroomStore } from './classroom-store.js';
 import { createCalendarStore, eventTiming, eventRange, todayISO } from './calendar.js';
+import { createPhotoCheckinClient } from './checkin/client.js';
 
 const $ = (selector) => document.querySelector(selector);
 const classrooms = createClassroomStore(supabase);
 const calendar = createCalendarStore(supabase);
+const checkin = createPhotoCheckinClient(supabase);
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 const scheduleStatus = $('#scheduleStatus');
 const scheduleList = $('#studentScheduleList');
@@ -20,6 +22,8 @@ let joinedClasses = [];
 let busy = false;
 let user = null;
 let ready = false;
+let attendance = null;
+let attendanceDay = '';
 
 function showStatus(message, kind = '') {
   status.textContent = message;
@@ -27,8 +31,8 @@ function showStatus(message, kind = '') {
 }
 
 function setActionState() {
-  actionButton.disabled = !ready || busy;
-  actionButton.textContent = joinedClasses.length ? '등교했어요' : '학급 입장';
+  actionButton.disabled = !ready || busy || Boolean(attendance);
+  actionButton.textContent = attendance ? '오늘 등교 완료' : joinedClasses.length ? '등교했어요' : '학급 입장';
 }
 
 function showScheduleStatus(message, error = false) {
@@ -38,6 +42,8 @@ function showScheduleStatus(message, error = false) {
 }
 
 function renderClasses() {
+  attendance = null;
+  attendanceDay = '';
   const school = joinedClasses[0];
   const content = clone(school ? 'studentClassTemplate' : 'studentClassEmptyTemplate');
   if (school) {
@@ -50,6 +56,22 @@ function renderClasses() {
   scheduleList.replaceChildren();
   void loadSchedule();
   setActionState();
+}
+
+async function refreshAttendance() {
+  const classId = joinedClasses[0]?.id;
+  const day = todayISO();
+  if (!ready || busy || !classId) return;
+  try {
+    const result = await checkin.state(classId);
+    if (!ready || busy || classId !== joinedClasses[0]?.id || day !== todayISO()) return;
+    attendance = result.attendance;
+    attendanceDay = day;
+    showStatus(attendance ? '사진 인증과 출석 저장이 완료됐어요.' : '', attendance ? 'success' : '');
+    setActionState();
+  } catch (error) {
+    if (ready && !busy && classId === joinedClasses[0]?.id) showStatus(error.message, 'error');
+  }
 }
 
 async function loadSchedule({ silent = false } = {}) {
@@ -97,13 +119,19 @@ async function loadSchedule({ silent = false } = {}) {
   }
 }
 
-window.addEventListener('focus', () => { if (ready) void loadSchedule({ silent: true }); });
+function refreshScreen() {
+  if (!ready) return;
+  void loadSchedule({ silent: true });
+  void refreshAttendance();
+}
+window.addEventListener('focus', refreshScreen);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && ready) void loadSchedule({ silent: true });
+  if (!document.hidden) refreshScreen();
 });
 // 다른 기기에서 등록·삭제한 일정과 자정 이후의 D-day를 갱신합니다.
 const scheduleTimer = window.setInterval(() => {
   if (!document.hidden && ready && !scheduleLoading) void loadSchedule({ silent: true });
+  if (!document.hidden && attendanceDay && attendanceDay !== todayISO()) void refreshAttendance();
 }, 30000);
 window.addEventListener('pagehide', event => {
   if (!event.persisted) window.clearInterval(scheduleTimer);
@@ -140,6 +168,7 @@ async function loadStudent() {
     ready = true;
     renderClasses();
     showStatus('');
+    void refreshAttendance();
   } catch (error) {
     showStatus(`학급 정보를 불러오지 못했어요: ${error.message}`, 'error');
     classCard.textContent = '데이터베이스 연결을 확인해 주세요.';
@@ -147,46 +176,24 @@ async function loadStudent() {
   }
 }
 
-function currentGPS() {
-  return new Promise((resolve, reject) => {
-    if (!window.isSecureContext || !navigator.geolocation) {
-      reject(new Error('위치 인증은 HTTPS 또는 localhost에서만 사용할 수 있어요.'));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve(position.coords),
-      (error) => {
-        const messages = { 1: '위치 권한을 허용해 주세요.', 2: '현재 위치를 가져올 수 없어요.', 3: '위치 요청 시간이 초과됐어요.' };
-        reject(new Error(messages[error.code] || '위치를 확인하지 못했어요.'));
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  });
-}
-
 async function verifyAttendance() {
-  if (!joinedClasses.length || busy) return;
+  if (!joinedClasses.length || busy || attendance) return;
+  const classId = joinedClasses[0].id;
   busy = true;
-  actionButton.disabled = true;
-  actionButton.textContent = '위치 확인 중...';
-  showStatus('현재 GPS 위치를 가져오는 중이에요.');
+  setActionState();
+  actionButton.textContent = '인증 준비 중...';
+  showStatus('학교 위치를 확인하고 촬영 제시어를 준비하고 있어요.');
   try {
-    const coords = await currentGPS();
-    showStatus('관리자가 설정한 학교 위치와 거리를 비교하고 있어요.');
-    const { data, error } = await supabase.rpc('verify_checkin_location', {
-      p_classroom_id: joinedClasses[0].id,
-      p_latitude: coords.latitude,
-      p_longitude: coords.longitude,
-      p_accuracy: coords.accuracy,
-    });
-    if (error) throw classroomError(error);
-    if (!data || typeof data.success !== 'boolean') throw new Error('위치 인증 결과를 확인할 수 없어요.');
-    if (data.retry) {
-      showStatus(data.message || '위치 정확도를 확인하고 다시 시도해 주세요.', 'error');
-    } else if (data.success) {
-      showStatus(`✅ 위치 인증 성공! ${data.schoolName || '학교'}에서 약 ${data.distanceMeters}m 떨어져 있어요. (설정 반경 ${data.radiusMeters}m)`, 'success');
+    const result = await checkin.begin(classId);
+    if (!ready || classId !== joinedClasses[0]?.id) return;
+    if (result.attendance) {
+      attendance = result.attendance;
+      attendanceDay = todayISO();
+      showStatus('오늘 사진 인증과 출석 저장이 완료됐어요.', 'success');
+    } else if (result.challenge) {
+      window.location.assign(`/camera.html?classroom=${encodeURIComponent(classId)}`);
     } else {
-      showStatus(`❌ 인증 범위 밖이에요. 학교에서 약 ${data.distanceMeters}m 떨어져 있어요. (설정 반경 ${data.radiusMeters}m)`, 'error');
+      throw new Error('촬영 제시어를 준비하지 못했어요. 다시 시도해 주세요.');
     }
   } catch (error) {
     showStatus(error.message, 'error');

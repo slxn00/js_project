@@ -1,3 +1,9 @@
 [functions.neis-calendar]
 verify_jwt = true
 entrypoint = "./functions/neis-calendar/index.js"
+
+[functions.photo-checkin]
+# The handler validates the session with Supabase Auth before any DB/AI action.
+# This also supports projects using asymmetric session JWTs.
+verify_jwt = false
+entrypoint = "./functions/photo-checkin/index.js"

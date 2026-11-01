@@ -11,6 +11,8 @@ npm run dev
 
 `.env.example`을 참고해 `.env`에 Supabase 공개 키와 카카오 지도 키를 설정합니다. 인증 설정은 [AUTH_SETUP.md](AUTH_SETUP.md), 학급 생성·입장·멤버 관리는 [MEMBERS_SETUP.md](MEMBERS_SETUP.md)를 참고하세요.
 
+사진으로 등교 인증은 [PHOTO_CHECKIN_SETUP.md](PHOTO_CHECKIN_SETUP.md)에 따라 DB 마이그레이션, 서버의 `OPENAI_API_KEY` 설정, `photo-checkin` 함수 배포를 완료해야 합니다. 학생의 등교 버튼은 학교 위치 확인 후 촬영 화면으로 연결됩니다. 서버가 제시어와 사진의 일치를 확인하고 출석을 저장한 경우에만 완료됩니다.
+
 학급 관련 기존 마이그레이션 4개를 적용한 뒤 Supabase SQL Editor에서 [학사일정 마이그레이션](supabase/migrations/202611010001_academic_calendar.sql)을 실행하세요. 기존 `custom_calendar_events` 데이터는 유지하며, 종료일 없는 기존 일정은 하루 일정으로 처리합니다. 학생 조회 권한과 관리자 등록·삭제 권한을 추가하므로 기존에 일정 테이블이 있어도 적용해야 합니다. 이어서 [일정 수정 마이그레이션](supabase/migrations/202611010002_edit_academic_calendar.sql)을 실행하면 관리자 수정 권한이 적용됩니다. 이미 첫 번째 학사일정 마이그레이션을 적용했다면 수정 마이그레이션만 추가로 실행합니다.
 
 ## 학사일정
@@ -30,7 +32,9 @@ npm run dev
 - 루트 `*.html`: 화면 구조, 모달, 반복 항목의 `<template>`.
 - `src/css/`: 페이지 스타일. 관리자 사이드바는 `main.css`, 달력·일정 폼은 `admin.css`를 사용합니다.
 - `src/js/admin.js`: 관리자 계정·학급·멤버 관리. `admin-calendar.js`는 관리자 달력 동작을 담당합니다.
-- `src/js/student.js`: 학생 학급 입장·탈퇴·위치 인증·일정 화면.
+- `src/js/student.js`: 학생 학급 입장·탈퇴·사진 인증 시작·출석 상태·일정 화면.
+- `src/js/classroom-camera.js`: 서버 제시어·촬영·재촬영·판정 결과 화면. `checkin/camera-session.js`는 카메라만, `checkin/client.js`는 위치·인증 요청만 담당합니다.
+- `supabase/functions/photo-checkin/`: 서버 사진 인증 진입점. 실제 판정 로직과 공통 제시어는 인접한 `_shared/`에 있습니다.
 - `src/js/calendar.js`: 관리자·학생 공통 일정 조회·저장·수정·삭제와 날짜/D-day 계산.
 - `src/js/classroom-store.js`: 기존 학급 데이터와 RPC 접근.
 

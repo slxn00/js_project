@@ -1,45 +1,45 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <link rel="icon" type="image/png" href="/js_project_icon.png">
     <link rel="apple-touch-icon" href="/ios_icon.png">
     <link rel="manifest" href="/manifest.json">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" />
-    <title>제시어 사진 촬영</title>
-    <link rel="stylesheet" href="/src/css/camera.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>사진으로 등교 인증</title>
+    <link rel="stylesheet" href="/src/css/camera.css">
     <script type="module" src="/src/js/classroom-camera.js"></script>
 </head>
-
 <body>
-    <main class="camera-app">
-        <header class="prompt-area">
-            <h1 class="sr-only">랜덤 제시어 사진 촬영</h1>
-            <p id="promptLabel" class="prompt-chip" aria-label="촬영 제시어" aria-live="polite">제시어</p>
-            <p id="promptHint" class="sr-only"></p>
-        </header>
-
+    <main class="camera-app" data-stage="loading">
+        <nav class="camera-header" aria-label="사진 인증 메뉴">
+            <a href="/student.html" aria-label="내 클래스로 돌아가기">← 내 클래스</a>
+            <span>사진으로 등교 인증</span>
+        </nav>
         <section id="viewfinder" class="viewfinder" aria-label="제시어 촬영 카메라">
             <video id="camera" autoplay playsinline muted aria-describedby="promptHint" hidden></video>
-            <img id="photoPreview" alt="방금 촬영한 제시어 사진" hidden />
+            <img id="photoPreview" alt="방금 촬영한 제시어 사진" hidden>
             <div id="cameraPlaceholder" class="camera-placeholder" aria-hidden="true"></div>
-            <span id="liveBadge" class="live-badge" hidden><span></span> LIVE</span>
         </section>
-
+        <header class="prompt-area">
+            <h1 class="sr-only">사진으로 등교 인증</h1>
+            <p id="promptLabel" class="prompt-chip" aria-live="polite">제시어 확인 중...</p>
+            <p id="promptHint" class="prompt-hint">학교 위치와 촬영 제시어를 확인하고 있어요.</p>
+        </header>
         <footer class="camera-controls">
-            <p id="cameraStatus" class="camera-status" role="status" aria-live="polite">카메라를 켜면 촬영 권한을 요청해요.</p>
-            <button id="startCamera" class="primary-button" type="button">카메라 켜기</button>
-            <button id="takePhoto" class="shutter-button" type="button" aria-label="사진 촬영하기" hidden disabled><span
-                    aria-hidden="true"></span></button>
+            <p id="cameraStatus" class="camera-status" role="status" aria-live="polite">출석 정보를 불러오고 있어요.</p>
+            <button id="startCamera" class="primary-button" type="button" hidden>카메라 켜기</button>
+            <button id="takePhoto" class="shutter-button" type="button" aria-label="사진 촬영하기" hidden disabled><span aria-hidden="true"></span></button>
             <div id="photoActions" class="photo-actions" hidden>
-                <button id="retakePhoto" class="secondary-button" type="button">다시 찍기</button>
-                <a id="savePhoto" class="primary-button" download>사진 저장</a>
+                <button id="verifyPhoto" class="primary-button" type="button">이 사진으로 등교 인증</button>
+                <button id="retakePhoto" class="secondary-button" type="button">다시 촬영</button>
+                <a id="savePhoto" class="save-photo" download>사진 저장</a>
             </div>
+            <button id="restartCheckin" class="secondary-button" type="button" hidden>출석 상태 다시 확인</button>
+            <a id="finishCheckin" class="primary-button" href="/student.html" hidden>내 클래스로 돌아가기</a>
         </footer>
     </main>
     <canvas id="captureCanvas" hidden></canvas>
 </body>
-
 </html>

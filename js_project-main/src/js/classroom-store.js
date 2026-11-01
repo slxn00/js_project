@@ -72,24 +72,6 @@ export function createClassroomStore(client) {
             }))
         },
 
-        async verifyLocation(classId, latitude, longitude, accuracy) {
-            await currentUser();
-
-            const { data, error } = await client.rpc(
-                "verify_checkin_location",
-                {
-                    p_classroom_id: classId,
-                    p_latitude: latitude,
-                    p_longitude: longitude,
-                    p_accuracy: accuracy,
-                }
-            );
-
-            if (error) throw classroomError(error);
-
-            return data;
-        },
-
         async joinClass({ name, code }) {
             await currentUser()
             const cleanName = name.trim()

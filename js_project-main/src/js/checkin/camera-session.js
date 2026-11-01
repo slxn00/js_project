@@ -1,21 +1,3 @@
-import { CLASSROOM_PROMPTS } from './prompts.js'
-
-const PROMPT_KEY = 'classroom-camera-prompt:v1'
-
-export function assignedPrompt(storage, cryptoSource = globalThis.crypto) {
-    let stored
-    try { stored = storage?.getItem(PROMPT_KEY) } catch { /* Storage may be unavailable. */ }
-    const previous = CLASSROOM_PROMPTS.find(prompt => prompt.id === stored)
-    if (previous) return previous
-    const size = CLASSROOM_PROMPTS.length
-    const limit = 2 ** 32 - (2 ** 32 % size)
-    const random = new Uint32Array(1)
-    do { cryptoSource.getRandomValues(random) } while (random[0] >= limit)
-    const selected = CLASSROOM_PROMPTS[random[0] % size]
-    try { storage?.setItem(PROMPT_KEY, selected.id) } catch { /* Still keep the prompt for this page. */ }
-    return selected
-}
-
 export class CameraSession {
     constructor(video, mediaDevices) { this.video = video; this.mediaDevices = mediaDevices; this.stream = null; this.version = 0 }
     stop() {
