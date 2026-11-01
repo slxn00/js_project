@@ -56,6 +56,7 @@ function showPrompt(value) {
 async function loadChallenge() {
     const version = ++loadVersion;
     camera.stop();
+    challenge = null;
     photo = null;
     rejected = false;
     preview.hidden = true;
@@ -63,6 +64,8 @@ async function loadChallenge() {
     video.hidden = true;
     $('#cameraPlaceholder').hidden = false;
     render('loading');
+    $('#promptLabel').textContent = '제시어 확인 중...';
+    $('#promptHint').textContent = '학교 위치와 촬영 제시어를 확인하고 있어요.';
     status('출석 상태와 촬영 제시어를 확인하고 있어요.');
     try {
         const { data, error } = await supabase.auth.getUser();
@@ -94,6 +97,8 @@ async function loadChallenge() {
         if (version !== loadVersion || away) return;
         if (error.code === 'LOGIN_REQUIRED') { window.location.replace('/login.html'); return; }
         render('unavailable');
+        $('#promptLabel').textContent = error.code === 'CHECKIN_NOT_CONFIGURED' ? '사진 인증 준비 중' : '사진 인증을 시작하지 못했어요';
+        $('#promptHint').textContent = error.code === 'CHECKIN_NOT_CONFIGURED' ? '선생님이 사진 인증 설정을 완료하면 이용할 수 있어요.' : '아래 안내를 확인한 뒤 다시 시도해 주세요.';
         status(error.message, 'error');
     }
 }

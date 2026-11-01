@@ -4,9 +4,10 @@ const messages = {
     LOGIN_REQUIRED: '로그인 후 사진 인증을 이용해 주세요.',
     MEMBERSHIP_REQUIRED: '현재 가입한 학급에서만 사진 인증을 이용할 수 있어요.',
     CHECKIN_NOT_CONFIGURED: '사진 인증이 아직 준비되지 않았어요. 관리자에게 문의해 주세요.',
+    CHECKIN_UNAVAILABLE: '사진 인증 서버에 연결하지 못했어요. 네트워크 상태를 확인하거나 선생님에게 문의해 주세요.',
 };
 function checkinError(error) {
-    const missing = ['PGRST202', 'PGRST205', '42883', '42P01'].includes(error?.code);
+    const missing = ['PGRST202', 'PGRST205', '42883', '42P01', 'NOT_FOUND'].includes(error?.code);
     const code = missing ? 'CHECKIN_NOT_CONFIGURED' : error?.code || 'CHECKIN_UNAVAILABLE';
     const known = Object.keys(messages).find(key => String(error?.message).includes(key));
     return Object.assign(new Error(messages[known || code] || error?.message || '사진 인증 서버에 연결하지 못했어요.'), { code: known || code });
@@ -40,27 +41,30 @@ export function currentGPS() {
 }
 
 export function createPhotoCheckinClient(client, getLocation = currentGPS) {
+    async function state(classroomId) {
+        const { data, error } = await client.rpc('get_my_photo_checkin_state', { p_classroom_id: classroomId });
+        if (error) throw checkinError(error);
+        return normalizeState(data);
+    }
     async function request(action, values) {
         let result;
         try {
             result = await client.functions.invoke('photo-checkin', {
                 body: { action, ...values }, signal: AbortSignal.timeout(60000),
             });
-        } catch { throw new Error('사진 인증 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.'); }
+        } catch { throw checkinError({ code: 'CHECKIN_UNAVAILABLE' }); }
         if (result.error) {
-            let detail = result.error;
+            let detail = { code: 'CHECKIN_UNAVAILABLE' };
             try { detail = await result.error.context.clone().json(); } catch { /* Network errors do not include a JSON response. */ }
             throw checkinError(detail);
         }
         return result.data;
     }
     return {
-        async state(classroomId) {
-            const { data, error } = await client.rpc('get_my_photo_checkin_state', { p_classroom_id: classroomId });
-            if (error) throw checkinError(error);
-            return normalizeState(data);
-        },
+        state,
         async begin(classroomId) {
+            const current = await state(classroomId);
+            if (current.attendance) return current;
             return normalizeState(await request('start', { classroomId, location: await getLocation() }));
         },
         async verify(challengeId, image) {
