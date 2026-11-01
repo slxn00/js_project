@@ -80,12 +80,13 @@
   <dialog id="studentJoinDialog" class="join-dialog" aria-labelledby="joinTitle">
     <form id="studentJoinForm" novalidate>
       <div class="dialog-heading">
-        <div>
-          <h2 id="joinTitle">학급 입장하기</h2>
-          <p>선생님께 받은 학급코드를 입력해 주세요.</p>
+        <div class="join-title-group">
+          <div>
+            <h2 id="joinTitle">학급 입장하기</h2>
+            <p>선생님께 받은 학급코드를 입력해 주세요.</p>
+          </div>
         </div>
-      </div>
-      <button type="button" id="closeJoinDialog" aria-label="닫기">×</button>
+        <button type="button" id="closeJoinDialog" aria-label="닫기">×</button>
       </div>
       <label for="studentJoinName">이름 <span class="required">*</span></label>
       <input id="studentJoinName" name="name" maxlength="50" placeholder="학생 이름을 입력해 주세요" autocomplete="name"
@@ -109,24 +110,17 @@
     </form>
   </dialog>
   <template id="studentClassEmptyTemplate">
-    <div><strong>아직 가입한 학급이 없어요.</strong>
-      <p>하단의 학급 입장 버튼을 눌러 학급 참여 코드를 입력하세요.</p>
-    </div>
+    <div><strong>아직 가입한 학급이 없어요.</strong><p>하단의 학급 입장 버튼을 눌러 학급 참여 코드를 입력하세요.</p></div>
   </template>
   <template id="studentClassTemplate">
     <div class="student-class-details">
-      <h3></h3>
-      <p></p><span class="code-label">학급 참여 코드</span><strong class="class-code"></strong>
+      <h3></h3><p></p><span class="code-label">학급 참여 코드</span><strong class="class-code"></strong>
       <button type="button" class="leave-button">학급 탈퇴</button>
     </div>
   </template>
   <template id="studentEventTemplate">
     <li class="student-event">
-      <div class="event-info">
-        <h3></h3>
-        <p class="event-date"></p>
-        <p class="event-description" hidden></p>
-      </div>
+      <div class="event-info"><h3></h3><p class="event-date"></p><p class="event-description" hidden></p></div>
       <span class="dday-badge"></span>
     </li>
   </template>
