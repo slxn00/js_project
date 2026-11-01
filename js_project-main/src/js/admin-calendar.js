@@ -12,6 +12,13 @@ const dayEvents = $("calendarDayEvents");
 const statusText = $("calendarStatus");
 const calendarPanel = document.querySelector(".calendar-panel");
 
+// 학사일정 등록 모달
+const customEventDialog = $("customEventDialog");
+const openCustomEventModal = $("openCustomEventModal");
+const closeCustomEventModal = $("closeCustomEventModal");
+const customEventFormMount = $("customEventFormMount");
+
+
 // 현재 날짜
 const now = new Date();
 
@@ -51,7 +58,6 @@ const customEventForm = document.createElement("form");
 
 customEventForm.id = "customCalendarEventForm";
 customEventForm.innerHTML = `
-  <h3>직접 일정 등록</h3>
 
   <label for="customEventDate">날짜</label>
   <input
@@ -93,71 +99,42 @@ const customEventMessage =
   customEventForm.querySelector("#customEventMessage");
 
 // 기존 달력의 일정 표시 영역 아래에 폼 배치
-if (dayEvents) {
-  dayEvents.insertAdjacentElement("afterend", customEventForm);
+if (customEventFormMount) {
+  customEventFormMount.appendChild(customEventForm);
 }
 
-// 간단한 기본 스타일
-const customEventStyle = document.createElement("style");
-
-customEventStyle.textContent = `
-  #customCalendarEventForm {
-    display: grid;
-    gap: 10px;
-    margin-top: 20px;
-    padding: 18px;
-    border: 1px solid #dddddd;
-    border-radius: 12px;
+// 일정 추가 버튼 클릭
+openCustomEventModal.addEventListener("click", () => {
+  if (!currentUser || !classroomId) {
+    setStatus("학급을 생성한 후 일정을 추가할 수 있어요.");
+    return;
   }
 
-  #customCalendarEventForm h3 {
-    margin: 0 0 4px;
-  }
+  // 입력 폼 초기화
+  customEventForm.reset();
+  customEventMessage.textContent = "";
 
-  #customCalendarEventForm label {
-    font-size: 14px;
-    font-weight: 600;
-  }
+  // 현재 달력에서 선택한 날짜 자동 입력
+  customEventDate.value =
+    `${year}-${pad(month)}-${pad(selectedDay)}`;
 
-  #customCalendarEventForm input,
-  #customCalendarEventForm textarea {
-    box-sizing: border-box;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #cccccc;
-    border-radius: 8px;
-    font: inherit;
-  }
+  // 모달 열기
+  customEventDialog.showModal();
 
-  #customCalendarEventForm textarea {
-    min-height: 80px;
-    resize: vertical;
-  }
+  customEventName.focus();
+});
 
-  #customCalendarEventForm button {
-    padding: 10px 14px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font: inherit;
-  }
+// 닫기 버튼 클릭
+closeCustomEventModal.addEventListener("click", () => {
+  customEventDialog.close();
+});
 
-  #customEventMessage {
-    margin: 0;
-    font-size: 14px;
-    white-space: pre-line;
+// 배경 클릭 시 닫기
+customEventDialog.addEventListener("click", (event) => {
+  if (event.target === customEventDialog) {
+    customEventDialog.close();
   }
-
-  .custom-event-delete {
-    margin-left: 8px;
-    padding: 3px 8px;
-    border: 1px solid #cccccc;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-`;
-
-document.head.appendChild(customEventStyle);
+});
 
 // 선택한 날짜의 학사일정 표시
 function showDayEvents(day) {
@@ -381,14 +358,12 @@ async function loadCustomEvents() {
   }));
 }
 
-// 나이스 일정 + 직접 등록한 일정 조회
+
 async function loadSchedule() {
   const currentRequest = ++requestNumber;
 
   events = [];
-
   customEventIds = new Set();
-
   schoolChoices.hidden = true;
 
   showDayEvents(selectedDay);
@@ -400,8 +375,21 @@ async function loadSchedule() {
 
   setStatus("학사일정을 불러오고 있어요...");
 
+  let schoolEvents = [];
+  let customEvents = [];
+
+  let neisError = null;
+  let customError = null;
+  let needsSchoolSelection = false;
+
+  const activeClassroom = classrooms.find(
+    (item) => item.id === classroomId
+  );
+
+  let schoolName = activeClassroom?.school_name || "학교";
+
+  // 1. 나이스 학사일정 조회
   try {
-    // 기존 나이스 학사일정 조회
     const { data, error } = await supabase.functions.invoke(
       "neis-calendar",
       {
@@ -412,95 +400,90 @@ async function loadSchedule() {
           ...(selectedSchool
             ? {
                 officeCode: selectedSchool.officeCode,
-                schoolCode: selectedSchool.schoolCode,
+                schoolCode: selectedSchool.schoolCode
               }
-            : {}),
-        },
+            : {})
+        }
       }
     );
 
-    if (currentRequest !== requestNumber) {
-      return;
-    }
+    if (currentRequest !== requestNumber) return;
 
     if (error) {
       let message = error.message;
 
       try {
         const result = await error.context?.json();
-
         message = result?.message || message;
       } catch {
-        // 응답 본문을 읽을 수 없는 경우
+        // 서버 오류 내용을 읽을 수 없는 경우
       }
 
       throw new Error(message);
     }
 
     if (data?.status === "choose-school") {
+      needsSchoolSelection = true;
       showSchoolChoices(data.schools || []);
-      return;
+    } else if (data?.status === "ok") {
+      schoolName = data.school?.name || schoolName;
+      schoolEvents = data.events || [];
+    } else {
+      throw new Error("나이스 학사일정을 조회하지 못했습니다.");
     }
 
-    if (data?.status !== "ok") {
-      throw new Error("학사일정을 가져오지 못했습니다.");
-    }
-
-    const schoolName = data.school?.name || "학교";
-
-    const calendarTitle =
-      document.getElementById("adminCalendarTitle");
-
-    if (calendarTitle) {
-      calendarTitle.textContent = `${schoolName} 학사일정`;
-    }
-
-    // 나이스 일정은 기존처럼 유지
-    const schoolEvents = data.events || [];
-
-    // 직접 등록한 일정 조회
-    let customEvents = [];
-
-    try {
-      customEvents = await loadCustomEvents();
-    } catch (customError) {
-      console.error("직접 등록한 일정 조회 실패:", customError);
-
-      customEventMessage.textContent =
-        "직접 등록한 일정을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.";
-    }
-
-    if (currentRequest !== requestNumber) {
-      return;
-    }
-
-    // 나이스 일정과 직접 등록한 일정을 합침
-    events = [
-      ...schoolEvents,
-      ...customEvents,
-    ];
-
-    console.log("나이스 학사일정:", schoolEvents);
-    console.log("직접 등록한 일정:", customEvents);
-
-    showDayEvents(selectedDay);
-
-    setStatus(
-      `${schoolName} · 학교 일정 ${schoolEvents.length}건, 직접 등록 ${customEvents.length}건`
-    );
   } catch (error) {
-    if (currentRequest !== requestNumber) {
-      return;
-    }
+    if (currentRequest !== requestNumber) return;
 
-    console.error("학사일정 조회 오류:", error);
+    neisError = error;
+    console.error("나이스 조회 실패:", error);
+  }
 
-    setStatus(`학사일정 조회 실패: ${error.message}`);
+  // 2. 직접 등록한 일정은 나이스 결과와 관계없이 조회
+  try {
+    customEvents = await loadCustomEvents();
+  } catch (error) {
+    if (currentRequest !== requestNumber) return;
 
-    dayEvents.textContent =
-      "학사일정을 불러오지 못했어요.";
+    customError = error;
+    console.error("직접 등록 일정 조회 실패:", error);
+  }
+
+  if (currentRequest !== requestNumber) return;
+
+  // 3. 두 종류의 일정 합치기
+  events = [...schoolEvents, ...customEvents];
+
+  // 4. 학교명 표시
+  const calendarTitle = $("adminCalendarTitle");
+
+  if (calendarTitle) {
+    calendarTitle.textContent = `${schoolName} 학사일정`;
+  }
+
+  // 5. 달력에 표시
+  showDayEvents(selectedDay);
+
+  // 6. 조회 결과 메시지
+  if (needsSchoolSelection) {
+    setStatus("정확한 학교를 선택해 주세요.");
+  } else if (neisError && customError) {
+    setStatus("학사일정을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+  } else if (neisError) {
+    setStatus(
+      `나이스 조회 불가 · 직접 등록한 일정 ${customEvents.length}건 표시`
+    );
+  } else if (customError) {
+    setStatus(
+      `나이스 일정 ${schoolEvents.length}건 조회 · 직접 등록 일정 조회 실패`
+    );
+  } else {
+    setStatus(
+      `${schoolName} · 나이스 ${schoolEvents.length}건, 직접 등록 ${customEvents.length}건`
+    );
   }
 }
+
 
 // 직접 일정 추가
 customEventForm.addEventListener("submit", async (event) => {
@@ -568,6 +551,7 @@ customEventForm.addEventListener("submit", async (event) => {
       "일정이 등록되었어요.";
 
     await loadSchedule();
+    customEventDialog.close();
   } catch (error) {
     console.error("일정 등록 실패:", error);
 

@@ -271,3 +271,88 @@ button:disabled {
         bottom: calc(34px + env(safe-area-inset-bottom, 0px));
     }
 }
+
+/* ====================================
+   제시어를 안내 문장으로 표시
+==================================== */
+
+/* 제시어 영역을 촬영 버튼 위에 배치 */
+.prompt-area {
+    position: absolute;
+    left: 50%;
+    bottom: 170px;
+    transform: translateX(-50%);
+
+    width: 90%;
+    padding: 0;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* 기존 "오늘의 촬영 미션" 안내 제거 */
+.prompt-area::before {
+    content: none;
+}
+
+/* 기존 커다란 파란 제시어 디자인 제거 */
+.prompt-chip {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+
+    margin: 0;
+    padding: 0;
+
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: -0.3px;
+    text-align: center;
+}
+
+/* 제시어 앞뒤에 문구 자동 추가 */
+.prompt-chip::before {
+    content: "'";
+}
+
+.prompt-chip::after {
+    content: "' 보이게 사진을 찍어주세요.";
+}
+
+/* 기존 상태 안내문은 숨기기 */
+.camera-status:not(.error) {
+    display: none;
+}
+
+/* 오류 안내는 사용자에게 보여주기 */
+.camera-status.error {
+    display: block;
+    color: #ff9b9b;
+    font-size: 12px;
+}
+
+/* 작은 휴대폰 높이 대응 */
+@media (max-height: 700px) {
+    .prompt-area {
+        bottom: 145px;
+    }
+
+    .prompt-chip {
+        font-size: 14px;
+    }
+}

@@ -29,58 +29,63 @@
 
         <div class="app-layout">
 
-            
-<!-- 왼쪽: 학교 학사일정 -->
-<main class="main-content" aria-label="학교 학사일정">
-    <div class="admin-overview">
 
-        <section class="calendar-panel" aria-labelledby="adminCalendarTitle" hidden>
+            <!-- 왼쪽: 학교 학사일정 -->
+            <main class="main-content" aria-label="학교 학사일정">
+                <div class="admin-overview">
 
-            <div class="calendar-panel-top">
-                <h2 id="adminCalendarTitle">학교 학사일정</h2>
+                    <section class="calendar-panel" aria-labelledby="adminCalendarTitle" hidden>
 
-                <div class="calendar-nav">
-                    <button type="button" id="calendarPrev" aria-label="이전 달">‹</button>
-                    <strong id="calendarMonth" aria-live="polite"></strong>
-                    <button type="button" id="calendarNext" aria-label="다음 달">›</button>
+
+                        <div class="calendar-panel-top">
+
+                            <div class="calendar-title-actions">
+                                <h2 id="adminCalendarTitle">학교 학사일정</h2>
+
+                                <button type="button" id="openCustomEventModal" class="calendar-add-button">
+                                    + 일정 추가
+                                </button>
+                            </div>
+
+                            <div class="calendar-nav">
+
+                                <button type="button" id="calendarPrev" aria-label="이전 달">‹</button>
+                                <strong id="calendarMonth" aria-live="polite"></strong>
+                                <button type="button" id="calendarNext" aria-label="다음 달">›</button>
+                            </div>
+                        </div>
+
+                        <div class="calendar-weekdays" aria-hidden="true">
+                            <span>일</span>
+                            <span>월</span>
+                            <span>화</span>
+                            <span>수</span>
+                            <span>목</span>
+                            <span>금</span>
+                            <span>토</span>
+                        </div>
+
+                        <div id="calendarDays" class="calendar-days" role="group" aria-label="학사일정 날짜 선택">
+                        </div>
+
+                        <div class="calendar-day-detail" aria-live="polite">
+                            <strong id="calendarSelectedDate">
+                                날짜를 선택해 주세요
+                            </strong>
+
+                            <p id="calendarDayEvents">
+                                등록된 학사일정이 아직 없어요.
+                            </p>
+                        </div>
+
+                        <p id="calendarStatus" class="calendar-footnote">
+                            학사일정을 불러오고 있어요...
+                        </p>
+
+                    </section>
+
                 </div>
-            </div>
-
-            <div class="calendar-weekdays" aria-hidden="true">
-                <span>일</span>
-                <span>월</span>
-                <span>화</span>
-                <span>수</span>
-                <span>목</span>
-                <span>금</span>
-                <span>토</span>
-            </div>
-
-            <div
-                id="calendarDays"
-                class="calendar-days"
-                role="group"
-                aria-label="학사일정 날짜 선택">
-            </div>
-
-            <div class="calendar-day-detail" aria-live="polite">
-                <strong id="calendarSelectedDate">
-                    날짜를 선택해 주세요
-                </strong>
-
-                <p id="calendarDayEvents">
-                    등록된 학사일정이 아직 없어요.
-                </p>
-            </div>
-
-            <p id="calendarStatus" class="calendar-footnote">
-                학사일정을 불러오고 있어요...
-            </p>
-
-        </section>
-
-    </div>
-</main>
+            </main>
 
 
             <!-- 오른쪽: 기존 관리자 패널 -->
@@ -204,6 +209,41 @@
             </div>
         </form>
     </dialog>
+
+    <!-- 학사일정 직접 등록 모달 -->
+    <dialog id="customEventDialog" class="custom-event-dialog" aria-labelledby="customEventDialogTitle">
+
+        <div class="custom-event-modal-content">
+
+            <div class="custom-event-modal-header">
+
+                <div>
+                    <span class="custom-event-eyebrow">
+                        SCHOOL CALENDAR
+                    </span>
+
+                    <h2 id="customEventDialogTitle">
+                        학사일정 추가
+                    </h2>
+
+                    <p>
+                        우리 학급의 일정을 직접 등록해 주세요.
+                    </p>
+                </div>
+
+                <button type="button" id="closeCustomEventModal" class="custom-event-close" aria-label="일정 등록 창 닫기">
+                    ×
+                </button>
+
+            </div>
+
+            <!-- 기존 JS의 일정 등록 폼이 여기에 들어감 -->
+            <div id="customEventFormMount"></div>
+
+        </div>
+
+    </dialog>
+
 
     <!-- 설정 모달 -->
     <div id="settingsModal" class="settings-overlay" hidden>

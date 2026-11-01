@@ -470,3 +470,247 @@
 .calendar-panel[hidden] {
     display: none !important;
 }
+
+/* ===================================
+   학사일정 추가 버튼
+=================================== */
+
+.calendar-title-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.calendar-title-actions h2 {
+    margin: 0;
+}
+
+.calendar-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 36px;
+    padding: 8px 14px;
+
+    border: 1px solid #dce8ff;
+    border-radius: 9px;
+
+    background: #edf4ff;
+    color: #3182f6;
+
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+
+    transition: background 0.2s;
+}
+
+.calendar-add-button:hover {
+    background: #deebff;
+}
+
+/* ===================================
+   학사일정 등록 모달
+=================================== */
+
+.custom-event-dialog {
+    position: fixed;
+    inset: 0;
+
+    width: min(92vw, 460px);
+    max-height: 85vh;
+    max-height: 85dvh;
+
+    margin: auto;
+    padding: 0;
+
+    border: none;
+    border-radius: 22px;
+
+    background: #ffffff;
+    color: #191f28;
+
+    box-shadow: 0 24px 70px rgba(17, 24, 39, 0.18);
+    overflow-y: auto;
+}
+
+/* 모달 뒤 배경 블러 */
+.custom-event-dialog::backdrop {
+    background: rgba(20, 30, 50, 0.42);
+
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+}
+
+.custom-event-modal-content {
+    padding: 30px;
+}
+
+/* 상단 제목 */
+.custom-event-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin-bottom: 28px;
+}
+
+.custom-event-eyebrow {
+    display: block;
+    margin-bottom: 8px;
+
+    color: #3182f6;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+.custom-event-modal-header h2 {
+    margin: 0;
+
+    color: #191f28;
+    font-size: 23px;
+    font-weight: 750;
+    letter-spacing: -0.7px;
+}
+
+.custom-event-modal-header p {
+    margin: 9px 0 0;
+
+    color: #8b95a1;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.custom-event-close {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: #f2f4f7;
+    color: #6b7280;
+
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.custom-event-close:hover {
+    background: #e8edf4;
+}
+
+/* ===================================
+   일정 등록 폼
+=================================== */
+
+#customCalendarEventForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+}
+
+#customCalendarEventForm label {
+    margin-top: 8px;
+
+    color: #344054;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#customCalendarEventForm input,
+#customCalendarEventForm textarea {
+    width: 100%;
+    padding: 13px 14px;
+
+    border: 1px solid #dce4ef;
+    border-radius: 10px;
+
+    background: #ffffff;
+    color: #191f28;
+
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+}
+
+#customCalendarEventForm input:focus,
+#customCalendarEventForm textarea:focus {
+    border-color: #3182f6;
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.1);
+}
+
+#customCalendarEventForm textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+#customEventSubmit {
+    width: 100%;
+    min-height: 48px;
+
+    margin-top: 14px;
+    padding: 12px 18px;
+
+    border: none;
+    border-radius: 11px;
+
+    background: #3182f6;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#customEventSubmit:hover {
+    background: #1b64da;
+}
+
+#customEventSubmit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#customEventMessage {
+    margin: 4px 0 0;
+
+    color: #d14343;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* 기존 등록 일정의 삭제 버튼 */
+.custom-event-delete {
+    margin-left: 10px;
+    padding: 5px 9px;
+
+    border: 1px solid #ffd6d6;
+    border-radius: 7px;
+
+    background: #fff2f2;
+    color: #dc4848;
+
+    font-size: 12px;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .custom-event-modal-content {
+        padding: 24px 20px;
+    }
+
+    .custom-event-modal-header h2 {
+        font-size: 21px;
+    }
+}
