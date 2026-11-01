@@ -35,7 +35,6 @@
 
     <main class="student-main">
       <section class="greeting">
-        <span class="eyebrow">MY CLASSROOM</span>
         <h1>학교 생활, 여기에서 시작해요.</h1>
         <p id="todayDate">오늘의 학급 정보를 확인해 보세요.</p>
       </section>
@@ -52,20 +51,9 @@
       <section class="student-section" aria-labelledby="scheduleHeading">
         <div class="section-heading">
           <h2 id="scheduleHeading">학사일정</h2>
-          <button type="button" id="refreshSchedule" class="text-button" disabled>새로고침</button>
-        </div>
-        <div class="schedule-toolbar">
-          <span id="scheduleSummary" class="muted-small">예정·진행 중인 일정</span>
-          <label><input type="checkbox" id="includePastEvents"> 지난 일정 포함</label>
         </div>
         <div id="studentScheduleCard" class="info-card schedule-card">
-          <div class="schedule-card-heading">
-            <div class="info-symbol" aria-hidden="true">📅</div>
-            <div>
-              <strong>우리 학급 학사일정</strong>
-              <p id="scheduleStatus" class="schedule-status" role="status" aria-live="polite">학급을 확인하고 있어요.</p>
-            </div>
-          </div>
+          <p id="scheduleStatus" class="schedule-status" role="status" aria-live="polite">학급을 확인하고 있어요.</p>
           <ul id="studentScheduleList" class="student-schedule-list" aria-label="등록된 학사일정"></ul>
         </div>
       </section>
@@ -133,7 +121,7 @@
   <template id="studentEventTemplate">
     <li class="student-event">
       <div class="event-info"><h3></h3><p class="event-date"></p><p class="event-description" hidden></p></div>
-      <div class="event-countdown"><span class="dday-badge"></span><small class="event-state"></small></div>
+      <span class="dday-badge"></span>
     </li>
   </template>
 </body>

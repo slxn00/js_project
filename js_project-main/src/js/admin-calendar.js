@@ -1,4 +1,4 @@
-import { createCalendarStore, eventRange, isoDate, normalizedDate, todayISO } from './calendar.js';
+import { createCalendarStore, calendarDayKind, eventRange, isoDate, normalizedDate, todayISO } from './calendar.js';
 
 export function createAdminCalendar(client) {
   const $ = id => document.getElementById(id);
@@ -177,10 +177,11 @@ export function createAdminCalendar(client) {
         const cell = clone('calendarDayTemplate');
         const date = isoDate(year, month, day);
         cell.dataset.day = day;
+        cell.dataset.kind = calendarDayKind(date, entries);
         cell.querySelector('span').textContent = day;
         cell.classList.toggle('selected', day === selectedDay);
         cell.setAttribute('aria-pressed', String(day === selectedDay));
-        cell.setAttribute('aria-label', `${year}년 ${month}월 ${day}일`);
+        cell.setAttribute('aria-label', `${year}년 ${month}월 ${day}일${cell.dataset.kind === 'holiday' ? ' (공휴일)' : ''}`);
         if (date === todayISO()) cell.setAttribute('aria-current', 'date');
         cell.addEventListener('click', () => { selectDay(day); showTooltip(cell, date); });
         cell.addEventListener('contextmenu', event => openContextMenu(event, date));
@@ -209,7 +210,6 @@ export function createAdminCalendar(client) {
         const ends = segment.event.end === isoDate(year, month, segment.end);
         const shape = begins && ends ? 'single' : begins ? 'starts' : ends ? 'ends' : 'middle';
         bar.classList.add(shape, `column-${first}`, `end-${last}`, `lane-${lane + 1}`);
-        bar.classList.toggle('custom', segment.event.source === 'custom');
         bar.textContent = segment.event.name;
         const date = isoDate(year, month, segment.start);
         bar.setAttribute('aria-label', `${segment.event.name} (${eventRange(segment.event)})`);
@@ -245,6 +245,7 @@ export function createAdminCalendar(client) {
       entries.push(...(school.value.data.events || []).map(event => ({
         name: event.name, description: event.description || '', source: 'neis',
         start: normalizedDate(event.date), end: normalizedDate(event.date),
+        isHoliday: event.isHoliday,
       })).filter(event => event.start));
     } else if (school.status === 'fulfilled' && school.value.data?.status === 'choose-school') {
       choices.replaceChildren();

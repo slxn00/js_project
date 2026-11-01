@@ -8,8 +8,6 @@ const calendar = createCalendarStore(supabase);
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 const scheduleStatus = $('#scheduleStatus');
 const scheduleList = $('#studentScheduleList');
-const refreshSchedule = $('#refreshSchedule');
-const includePast = $('#includePastEvents');
 let scheduleRequest = 0;
 let scheduleLoading = false;
 const actionButton = $('#studentAction');
@@ -33,6 +31,12 @@ function setActionState() {
   actionButton.textContent = joinedClasses.length ? '등교했어요' : '학급 입장';
 }
 
+function showScheduleStatus(message, error = false) {
+  scheduleStatus.textContent = message;
+  scheduleStatus.hidden = !message;
+  scheduleStatus.classList.toggle('error', error);
+}
+
 function renderClasses() {
   const school = joinedClasses[0];
   const content = clone(school ? 'studentClassTemplate' : 'studentClassEmptyTemplate');
@@ -53,22 +57,18 @@ async function loadSchedule({ silent = false } = {}) {
   const school = joinedClasses[0];
   const today = todayISO();
   $('#todayDate').textContent = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'full', timeZone: 'Asia/Seoul' }).format(new Date());
-  $('#scheduleSummary').textContent = includePast.checked ? '지난 일정까지 모두 표시' : '예정·진행 중인 일정';
-  refreshSchedule.disabled = true;
   if (!school) {
     scheduleList.replaceChildren();
     scheduleLoading = false;
     scheduleList.setAttribute('aria-busy', 'false');
-    scheduleStatus.classList.remove('error');
-    scheduleStatus.textContent = '학급에 입장하면 선생님이 등록한 학사일정을 볼 수 있어요.';
+    showScheduleStatus('학급에 입장하면 선생님이 등록한 학사일정을 볼 수 있어요.');
     return;
   }
   scheduleLoading = true;
   scheduleList.setAttribute('aria-busy', 'true');
-  scheduleStatus.classList.remove('error');
-  if (!silent) scheduleStatus.textContent = '학사일정을 불러오고 있어요...';
+  if (!silent) showScheduleStatus('학사일정을 불러오고 있어요...');
   try {
-    const events = await calendar.getEvents(school.id, includePast.checked ? {} : { start: today });
+    const events = await calendar.getEvents(school.id, { start: today });
     if (token !== scheduleRequest) return;
     const rows = [];
     for (const event of events) {
@@ -81,30 +81,22 @@ async function loadSchedule({ silent = false } = {}) {
       description.textContent = event.description;
       description.hidden = !event.description;
       row.querySelector('.dday-badge').textContent = timing.label;
-      row.querySelector('.event-state').textContent = {
-        upcoming: '시작일까지', today: '오늘 시작', ongoing: '기간 일정', past: '종료된 일정',
-      }[timing.state];
       rows.push(row);
     }
     scheduleList.replaceChildren(...rows);
-    scheduleStatus.textContent = events.length ? `${school.className} · ${events.length}개의 일정` :
-      includePast.checked ? '등록된 학사일정이 아직 없어요.' : '예정·진행 중인 학사일정이 없어요.';
+    showScheduleStatus(events.length ? '' : '등록된 학사일정이 아직 없어요.');
   } catch (error) {
     if (token !== scheduleRequest) return;
     scheduleList.replaceChildren();
-    scheduleStatus.classList.add('error');
-    scheduleStatus.textContent = `${error.message} 새로고침으로 다시 시도해 주세요.`;
+    showScheduleStatus(`${error.message} 잠시 후 자동으로 다시 확인할게요.`, true);
   } finally {
     if (token === scheduleRequest) {
       scheduleLoading = false;
-      refreshSchedule.disabled = false;
       scheduleList.setAttribute('aria-busy', 'false');
     }
   }
 }
 
-refreshSchedule.addEventListener('click', () => { void loadSchedule(); });
-includePast.addEventListener('change', () => { void loadSchedule(); });
 window.addEventListener('focus', () => { if (ready) void loadSchedule({ silent: true }); });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && ready) void loadSchedule({ silent: true });
@@ -151,7 +143,7 @@ async function loadStudent() {
   } catch (error) {
     showStatus(`학급 정보를 불러오지 못했어요: ${error.message}`, 'error');
     classCard.textContent = '데이터베이스 연결을 확인해 주세요.';
-    scheduleStatus.textContent = '학급 정보를 확인한 뒤 학사일정을 불러올 수 있어요.';
+    showScheduleStatus('학급 정보를 확인한 뒤 학사일정을 불러올 수 있어요.');
   }
 }
 

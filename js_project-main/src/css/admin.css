@@ -57,14 +57,16 @@
 .schedule-day { display: flex; align-items: flex-start; padding: 9px 10px; text-align: left; color: #293852; }
 .schedule-day:hover { background: #f3f7ff; }
 .schedule-day.selected { border-color: #3b82f6; background: #edf4ff; }
-.schedule-day[aria-current="date"] .schedule-day-number { color: #2563eb; text-decoration: underline; text-underline-offset: 4px; }
+.schedule-day[aria-current="date"] .schedule-day-number { text-decoration: underline; text-underline-offset: 4px; }
+.schedule-day[data-kind="sunday"],
+.schedule-day[data-kind="holiday"] { color: #dc4b5d; }
+.schedule-day[data-kind="saturday"] { color: #3777e2; }
 .schedule-day:focus-visible { outline: 3px solid #acc8ff; outline-offset: 1px; }
 .schedule-day-number { font-size: 21px; font-weight: 700; line-height: 1.2; }
 .schedule-bars { position: absolute; inset: 43px 0 4px; align-content: start; grid-auto-rows: 22px; gap: 4px 0; overflow: hidden; pointer-events: none; }
-.schedule-bar { min-width: 0; height: 22px; padding: 0 7px; border: 0; border-radius: 0; background: #e7efff; color: #3568bf; line-height: 22px; font-size: 12px; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; }
-.schedule-bar.custom { background: #dceaff; color: #1e5ccb; }
+.schedule-bar { min-width: 0; height: 22px; padding: 0 7px; border: 0; border-radius: 0; background: var(--event-fill); color: var(--event-text); line-height: 22px; font-size: 12px; font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; }
 .schedule-bar:hover,
-.schedule-bar:focus-visible { background: #c4dbff; outline: 2px solid #347df1; outline-offset: -2px; }
+.schedule-bar:focus-visible { filter: brightness(.97); outline: 2px solid #347df1; outline-offset: -2px; }
 .schedule-bar.single { margin: 0 4px; border-radius: 6px; }
 .schedule-bar.starts { margin-left: 4px; border-radius: 6px 0 0 6px; }
 .schedule-bar.ends { margin-right: 4px; border-radius: 0 6px 6px 0; }
@@ -82,10 +84,10 @@
 .end-5 { grid-column-end: 6; }
 .end-6 { grid-column-end: 7; }
 .end-7 { grid-column-end: 8; }
-.lane-1 { grid-row: 1; }
-.lane-2 { grid-row: 2; }
-.lane-3 { grid-row: 3; }
-.lane-4 { grid-row: 4; }
+.lane-1 { grid-row: 1; --event-fill: #edf3ff; --event-text: #31598e; }
+.lane-2 { grid-row: 2; --event-fill: #cadfff; --event-text: #234f89; }
+.lane-3 { grid-row: 3; --event-fill: #a4c6f5; --event-text: #193d70; }
+.lane-4 { grid-row: 4; --event-fill: #7fa7df; --event-text: #122e56; }
 .calendar-help { flex-shrink: 0; margin: 14px 2px 0; color: #64738a; font-size: 12px; line-height: 1.6; }
 .calendar-footnote { flex-shrink: 0; height: 36px; margin: 7px 2px 0; overflow-y: auto; color: #8996a9; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 #neisSchoolChoices:not([hidden]) { display: grid; gap: 6px; max-height: 140px; overflow-y: auto; margin: 10px 0; }

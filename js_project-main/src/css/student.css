@@ -17,14 +17,12 @@ button { cursor: pointer; }
 .header-bottom span:last-child { font-weight: 400; color: #dfebff; }
 .student-main { flex: 1; padding: 24px 18px 70px; }
 .greeting { margin: 0 0 26px; }
-.eyebrow { font-size: 10px; color: #347df1; font-weight: 800; letter-spacing: 1.7px; }
 .greeting h1 { font-size: 21px; margin: 7px 0 9px; line-height: 1.35; }
 .greeting p { margin: 0; color: #8a97a9; font-size: 12px; }
 .student-section { margin-bottom: 26px; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 11px; }
 .section-heading h2 { font-size: 16px; margin: 0; }
-.tag, .muted-small { color: #8895aa; font-size: 11px; }
-.tag { background: #edf4ff; color: #377af0; border-radius: 6px; padding: 5px 9px; }
+.tag { background: #edf4ff; color: #377af0; border-radius: 6px; padding: 5px 9px; font-size: 11px; }
 .class-card { border-radius: 14px; border: 1px solid #dfe8f7; background: #f8faff; min-height: 160px; padding: 17px; }
 .student-class-details { display: flex; flex-direction: column; }
 .class-card h3 { font-size: 16px; margin: 0 0 6px; }
@@ -43,25 +41,19 @@ button { cursor: pointer; }
 button:disabled { opacity: .55; cursor: not-allowed; }
 .student-status { color: #758297; font-size: 12px; line-height: 1.5; margin: 8px 0 0; overflow-wrap: anywhere; }
 .student-status:empty { display: none; }
-.student-status.error, .form-error, .schedule-status.error { color: #da5058; }
+.student-status.error, .form-error { color: #da5058; }
 .student-status.success { color: #24805b; }
-.text-button { padding: 6px 0 6px 10px; border: 0; background: transparent; color: #347df1; font-size: 12px; }
-.schedule-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-.schedule-toolbar label { display: flex; align-items: center; gap: 4px; color: #758297; font-size: 11px; }
-.schedule-toolbar input { accent-color: #347df1; }
-.schedule-card { display: block; margin-top: 13px; }
-.schedule-card-heading { display: flex; align-items: flex-start; gap: 12px; }
-.schedule-card-heading > div:last-child { min-width: 0; }
-.schedule-status { color: #758297; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.schedule-card { display: block; min-height: 88px; }
+.schedule-card .schedule-status { margin: 0; color: #758297; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.schedule-card .schedule-status.error { color: #da5058; }
 .student-schedule-list { display: grid; margin: 0; padding: 0; list-style: none; }
 .student-event { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e7edf7; }
+.student-event:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 .event-info { flex: 1; min-width: 0; }
 .event-info h3 { margin: 0 0 7px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 .schedule-card .event-date { margin: 0; color: #6b7c95; font-size: 11px; line-height: 1.6; }
 .schedule-card .event-description { margin: 7px 0 0; color: #758297; font-size: 12px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
-.event-countdown { display: flex; flex-shrink: 0; flex-direction: column; align-items: center; gap: 6px; }
-.dday-badge { display: grid; place-items: center; min-width: 76px; min-height: 58px; padding: 10px; border-radius: 12px; background: #edf4ff; color: #2869d7; font-size: 25px; font-weight: 800; letter-spacing: -.7px; white-space: nowrap; }
-.event-state { color: #8a97a9; font-size: 10px; }
+.dday-badge { display: grid; place-items: center; flex-shrink: 0; min-width: 76px; min-height: 58px; padding: 10px; border-radius: 12px; background: #edf4ff; color: #2869d7; font-size: 25px; font-weight: 800; letter-spacing: -.7px; white-space: nowrap; }
 .student-event[data-state="today"] .dday-badge { background: #fff0ed; color: #d94f42; }
 .student-event[data-state="today"] .dday-badge,
 .student-event[data-state="ongoing"] .dday-badge { font-size: 18px; letter-spacing: 0; }

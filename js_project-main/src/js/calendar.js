@@ -32,6 +32,19 @@ export function eventRange(event) {
   return event.start === event.end ? event.start : `${event.start} ~ ${event.end}`;
 }
 
+export function calendarDayKind(date, events = []) {
+  const holiday = events.some(event => {
+    if (event.source !== 'neis' || event.start > date || event.end < date) return false;
+    if (typeof event.isHoliday === 'boolean') return event.isHoliday;
+    // Older NEIS function deployments return event names without the holiday flag.
+    const name = event.name.replace(/\s|\([^)]*\)/g, '');
+    return /^(?:(?:대체|임시)?공휴일|신정|새해첫날|삼일절|3[.·]1절|어린이날|현충일|광복절|제헌절|개천절|한글날|성탄절|기독탄신일|크리스마스|부처님오신날|석가탄신일|노동절|근로자의날|설(?:날)?(?:연휴)?|추석(?:연휴)?|(?:제\d+(?:대|회))?(?:전국동시지방|대통령|국회의원)선거(?:일)?)$/.test(name);
+  });
+  if (holiday) return 'holiday';
+  const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return weekday === 0 ? 'sunday' : weekday === 6 ? 'saturday' : 'weekday';
+}
+
 function calendarError(error) {
   if (['42P01', '42703', 'PGRST204', 'PGRST205'].includes(error?.code)) {
     return new Error('학사일정 데이터베이스가 준비되지 않았어요. 관리자에게 문의해 주세요.');

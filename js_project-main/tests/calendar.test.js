@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCalendarStore, eventTiming, eventRange, normalizedDate, todayISO } from '../src/js/calendar.js';
+import { createCalendarStore, calendarDayKind, eventTiming, eventRange, normalizedDate, todayISO } from '../src/js/calendar.js';
 
 const event = { start: '2026-11-03', end: '2026-11-05' };
 
@@ -26,6 +26,27 @@ test('날짜를 정규화하고 잘못된 날짜는 제외한다', () => {
   for (const value of [null, '', '2026-02-29', '2026-13-01', 'not-a-date']) assert.equal(normalizedDate(value), '');
   assert.equal(eventRange(event), '2026-11-03 ~ 2026-11-05');
   assert.equal(eventRange({ start: '2026-11-03', end: '2026-11-03' }), '2026-11-03');
+});
+
+test('주말과 나이스 공휴일을 구분하고 토요일 공휴일은 공휴일 색을 우선한다', () => {
+  assert.equal(calendarDayKind('2026-11-01'), 'sunday');
+  assert.equal(calendarDayKind('2026-11-07'), 'saturday');
+  assert.equal(calendarDayKind('2026-11-02'), 'weekday');
+  const events = [{ source: 'neis', name: '추석 연휴', start: '2026-09-24', end: '2026-09-26' }];
+  assert.equal(calendarDayKind('2026-09-26', events), 'holiday');
+  assert.equal(calendarDayKind('2026-09-23', events), 'weekday');
+  assert.equal(calendarDayKind('2026-12-25', [{ source: 'neis', name: '성탄절(공휴일)', start: '2026-12-25', end: '2026-12-25' }]), 'holiday');
+  assert.equal(calendarDayKind('2026-11-03', [{ source: 'neis', isHoliday: true, name: '별도 지정일', start: '2026-11-03', end: '2026-11-03' }]), 'holiday');
+});
+
+test('학교 휴업일이나 공휴일 이름을 붙인 개인 일정은 공휴일로 표시하지 않는다', () => {
+  const events = [
+    { source: 'custom', name: '성탄절', start: '2026-11-03', end: '2026-11-03' },
+    { source: 'neis', name: '재량휴업일', start: '2026-11-04', end: '2026-11-04' },
+    { source: 'neis', name: '성탄절 행사', start: '2026-11-05', end: '2026-11-05' },
+    { source: 'neis', isHoliday: false, name: '성탄절', start: '2026-11-06', end: '2026-11-06' },
+  ];
+  for (const day of ['2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06']) assert.equal(calendarDayKind(day, events), 'weekday');
 });
 
 function fixture(result = { data: [], error: null }) {

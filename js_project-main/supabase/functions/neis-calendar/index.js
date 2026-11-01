@@ -169,6 +169,7 @@ async function getSchedule(school, year, month) {
             date: row.AA_YMD,
             name: row.EVENT_NM || "이름 없는 일정",
             description: row.EVENT_CNTNT || "",
+            isHoliday: row.SBTR_DD_SC_NM === "공휴일",
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
 }
