@@ -714,3 +714,240 @@
         font-size: 21px;
     }
 }
+.main-content,
+.admin-overview {
+    height: 100%;
+}
+
+.calendar-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.calendar-days {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.calendar-empty {
+    border-radius: 18px;
+    background: transparent;
+}
+
+.calendar-day {
+    position: relative;
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #edf1f7;
+    border-radius: 18px;
+    background: #fff;
+    padding: 14px 10px 10px;
+    text-align: left;
+    overflow: hidden;
+}
+
+.calendar-day.selected {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+}
+
+.calendar-day-number {
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.calendar-day.selected .calendar-day-number {
+    color: #fff;
+}
+
+.calendar-event-track {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.calendar-event-bar {
+    height: 20px;
+    line-height: 20px;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #dbeafe;
+    color: #2563eb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-event-bar.solo {
+    border-radius: 999px;
+}
+
+.calendar-event-bar.start {
+    border-radius: 999px 0 0 999px;
+    margin-right: -12px;
+}
+
+.calendar-event-bar.middle {
+    border-radius: 0;
+    margin-left: -12px;
+    margin-right: -12px;
+}
+
+.calendar-event-bar.end {
+    border-radius: 0 999px 999px 0;
+    margin-left: -12px;
+}
+
+.calendar-day-detail {
+    margin-top: 16px;
+}
+
+.calendar-footnote {
+    margin-top: 14px;
+    color: #7b8794;
+}
+
+/* 일정 추가 모달 */
+.custom-event-dialog {
+    border: 0;
+    padding: 0;
+    border-radius: 24px;
+    max-width: 460px;
+    width: calc(100% - 32px);
+    background: #fff;
+}
+
+.custom-event-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.28);
+    backdrop-filter: blur(8px);
+}
+
+.custom-event-form {
+    padding: 24px;
+}
+
+.custom-event-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.custom-event-header h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.custom-event-close {
+    border: 0;
+    background: transparent;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.custom-event-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.custom-event-input,
+.custom-event-textarea {
+    width: 100%;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    margin-bottom: 16px;
+}
+
+.custom-event-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.custom-event-status {
+    min-height: 20px;
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.custom-event-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.custom-event-cancel,
+.custom-event-submit {
+    min-width: 92px;
+    border: 0;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.custom-event-cancel {
+    background: #eef2f7;
+    color: #334155;
+}
+
+.custom-event-submit {
+    background: #3b82f6;
+    color: #fff;
+}
+
+/* 우클릭 메뉴 */
+.calendar-context-menu {
+    position: fixed;
+    z-index: 2000;
+    min-width: 160px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #dbe2ea;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+}
+
+.calendar-context-menu button {
+    width: 100%;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    padding: 10px 12px;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+}
+
+.calendar-context-menu button:hover {
+    background: #f1f5f9;
+}

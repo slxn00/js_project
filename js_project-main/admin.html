@@ -264,5 +264,40 @@
     </div>
 
 </body>
+<dialog id="customEventDialog" class="custom-event-dialog">
+    <form id="customEventForm" class="custom-event-form" novalidate>
+        <div class="custom-event-header">
+            <h3>일정 추가</h3>
+            <button type="button" id="closeCustomEventDialog" class="custom-event-close">×</button>
+        </div>
+
+        <label class="custom-event-label" for="customEventTitle">일정명</label>
+        <input id="customEventTitle" class="custom-event-input" type="text" maxlength="60" placeholder="예: 중간고사"
+            required>
+
+        <label class="custom-event-label" for="customEventDescription">설명</label>
+        <textarea id="customEventDescription" class="custom-event-textarea" rows="3"
+            placeholder="필요하면 설명을 적어 주세요."></textarea>
+
+        <div class="custom-event-range">
+            <div>
+                <label class="custom-event-label" for="customEventStartDate">시작일</label>
+                <input id="customEventStartDate" class="custom-event-input" type="date" required>
+            </div>
+            <div>
+                <label class="custom-event-label" for="customEventEndDate">종료일</label>
+                <input id="customEventEndDate" class="custom-event-input" type="date" required>
+            </div>
+        </div>
+
+        <p id="customEventStatus" class="custom-event-status" role="status"></p>
+
+        <div class="custom-event-actions">
+            <button type="button" id="cancelCustomEvent" class="custom-event-cancel">취소</button>
+            <button type="submit" class="custom-event-submit">저장</button>
+        </div>
+    </form>
+</dialog>
+
 
 </html>
