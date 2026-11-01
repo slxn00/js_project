@@ -69,15 +69,7 @@
                         <div id="calendarDays" class="calendar-days" role="group" aria-label="학사일정 날짜 선택">
                         </div>
 
-                        <div class="calendar-day-detail" aria-live="polite">
-                            <strong id="calendarSelectedDate">
-                                날짜를 선택해 주세요
-                            </strong>
-
-                            <div id="calendarDayEvents">
-                                등록된 학사일정이 아직 없어요.
-                            </div>
-                        </div>
+                        <p class="calendar-help">마우스를 올리면 상세 일정이 보여요. 등록된 일정을 우클릭하면 수정·삭제할 수 있어요.</p>
 
                         <p id="calendarStatus" class="calendar-footnote">
                             학사일정을 불러오고 있어요...
@@ -228,13 +220,28 @@
         </form>
     </dialog>
 
-    <template id="calendarWeekTemplate"><div class="schedule-week"><div class="schedule-bars" aria-hidden="true"></div></div></template>
+    <div id="calendarTooltip" class="calendar-tooltip" role="tooltip" hidden>
+        <strong id="calendarTooltipTitle"></strong>
+        <div id="calendarTooltipEvents"></div>
+    </div>
+    <div id="calendarContextMenu" class="calendar-context-menu" role="menu" aria-label="학사일정 관리" hidden>
+        <div id="calendarContextEvents" role="none"></div>
+        <button type="button" id="calendarContextAdd" role="menuitem">+ 학사일정 등록</button>
+    </div>
+    <template id="calendarContextEventTemplate">
+        <div class="calendar-context-event" role="group">
+            <p class="calendar-context-name"></p>
+            <button type="button" data-edit role="menuitem">학사일정 수정</button>
+            <button type="button" data-delete role="menuitem">학사일정 삭제</button>
+        </div>
+    </template>
+    <template id="calendarWeekTemplate"><div class="schedule-week"><div class="schedule-bars"></div></div></template>
     <template id="calendarBlankTemplate"><span class="schedule-empty" aria-hidden="true"></span></template>
     <template id="calendarDayTemplate"><button type="button" class="schedule-day"><span class="schedule-day-number"></span></button></template>
-    <template id="calendarBarTemplate"><div class="schedule-bar"></div></template>
+    <template id="calendarBarTemplate"><button type="button" class="schedule-bar"></button></template>
     <template id="calendarSchoolTemplate"><button type="button"></button></template>
-    <template id="calendarDetailTemplate">
-        <div class="schedule-details-row"><span></span><button type="button">삭제</button></div>
+    <template id="calendarHoverEventTemplate">
+        <div class="calendar-hover-event"><strong></strong><p class="calendar-hover-dates"></p><p class="calendar-hover-description" hidden></p></div>
     </template>
     <template id="adminClassCardTemplate">
         <article class="created-class-card">

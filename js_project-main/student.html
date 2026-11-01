@@ -58,8 +58,16 @@
           <span id="scheduleSummary" class="muted-small">예정·진행 중인 일정</span>
           <label><input type="checkbox" id="includePastEvents"> 지난 일정 포함</label>
         </div>
-        <p id="scheduleStatus" class="schedule-status" role="status" aria-live="polite">학급을 확인하고 있어요.</p>
-        <ul id="studentScheduleList" class="student-schedule-list" aria-label="등록된 학사일정"></ul>
+        <div id="studentScheduleCard" class="info-card schedule-card">
+          <div class="schedule-card-heading">
+            <div class="info-symbol" aria-hidden="true">📅</div>
+            <div>
+              <strong>우리 학급 학사일정</strong>
+              <p id="scheduleStatus" class="schedule-status" role="status" aria-live="polite">학급을 확인하고 있어요.</p>
+            </div>
+          </div>
+          <ul id="studentScheduleList" class="student-schedule-list" aria-label="등록된 학사일정"></ul>
+        </div>
       </section>
 
       <section class="student-section" aria-labelledby="noticeHeading">

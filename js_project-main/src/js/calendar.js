@@ -40,6 +40,17 @@ function calendarError(error) {
   return new Error(error?.message || '학사일정을 불러오지 못했어요. 다시 시도해 주세요.');
 }
 
+function eventValues(event) {
+  if (!event.name.trim() || event.name.trim().length > 100 || event.description.length > 500 ||
+      !normalizedDate(event.start) || !normalizedDate(event.end) || event.start > event.end) {
+    throw new Error('일정명과 시작일·종료일을 확인해 주세요.');
+  }
+  return {
+    name: event.name.trim(), description: event.description.trim(),
+    event_date: event.start, end_date: event.end,
+  };
+}
+
 export function createCalendarStore(client) {
   return {
     async getEvents(classroomId, { start, end } = {}) {
@@ -55,17 +66,21 @@ export function createCalendarStore(client) {
       })).filter(event => event.start && event.end && event.start <= event.end);
     },
     async addEvent(classroom, event) {
-      if (!event.name.trim() || event.name.trim().length > 100 || event.description.length > 500 ||
-          !normalizedDate(event.start) || !normalizedDate(event.end) || event.start > event.end) {
-        throw new Error('일정명과 시작일·종료일을 확인해 주세요.');
-      }
+      const values = eventValues(event);
       const { data, error } = await client.from('custom_calendar_events').insert({
         classroom_id: classroom.id, created_by: classroom.ownerId,
-        name: event.name.trim(), description: event.description.trim(),
-        event_date: event.start, end_date: event.end,
+        ...values,
       }).select('id').single();
       if (error) throw calendarError(error);
       return data;
+    },
+    async updateEvent(classroomId, eventId, event) {
+      const values = eventValues(event);
+      const { data, error } = await client.from('custom_calendar_events').update(values)
+        .eq('classroom_id', classroomId).eq('id', eventId).select('id');
+      if (error) throw calendarError(error);
+      if (!data?.length) throw new Error('일정이 이미 삭제되었거나 수정 권한이 없어요.');
+      return data[0];
     },
     async deleteEvent(classroomId, eventId) {
       const { data, error } = await client.from('custom_calendar_events').delete()

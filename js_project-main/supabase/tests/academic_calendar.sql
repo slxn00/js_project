@@ -43,6 +43,23 @@ do $$ begin
     if (select count(*) from public.custom_calendar_events where classroom_id = current_setting('test.class_a')::uuid) <> 1 then
         raise exception 'TEST_FAIL: owner cannot read saved event';
     end if;
+    update public.custom_calendar_events
+    set name = '수정 중간고사', description = '변경된 설명', event_date = '2026-11-05', end_date = '2026-11-07'
+    where classroom_id = current_setting('test.class_a')::uuid;
+    if not exists (select 1 from public.custom_calendar_events where classroom_id = current_setting('test.class_a')::uuid
+        and name = '수정 중간고사' and event_date = '2026-11-05' and end_date = '2026-11-07') then
+        raise exception 'TEST_FAIL: owner cannot update event';
+    end if;
+    begin
+        update public.custom_calendar_events set created_by = current_setting('test.owner_b')::uuid
+        where classroom_id = current_setting('test.class_a')::uuid;
+        raise exception 'TEST_FAIL: event creator can be changed';
+    exception when insufficient_privilege then null; end;
+    begin
+        update public.custom_calendar_events set classroom_id = current_setting('test.class_b')::uuid
+        where classroom_id = current_setting('test.class_a')::uuid;
+        raise exception 'TEST_FAIL: event can be moved to another classroom';
+    exception when insufficient_privilege then null; end;
     begin
         insert into public.custom_calendar_events (classroom_id, created_by, event_date, end_date, name)
         values (current_setting('test.class_a')::uuid, current_setting('test.owner_b')::uuid, '2026-11-03', '2026-11-03', '작성자 위조');
@@ -69,10 +86,11 @@ do $$ begin
     if not exists (select 1 from public.custom_calendar_events where classroom_id = current_setting('test.class_a')::uuid) then
         raise exception 'TEST_FAIL: student deleted event';
     end if;
-    begin
-        update public.custom_calendar_events set name = '학생 수정' where classroom_id = current_setting('test.class_a')::uuid;
-        raise exception 'TEST_FAIL: student can update event';
-    exception when insufficient_privilege then null; end;
+    update public.custom_calendar_events set name = '학생 수정' where classroom_id = current_setting('test.class_a')::uuid;
+    if found then raise exception 'TEST_FAIL: student can update event'; end if;
+    if not exists (select 1 from public.custom_calendar_events where classroom_id = current_setting('test.class_a')::uuid and name = '수정 중간고사') then
+        raise exception 'TEST_FAIL: student cannot read updated event';
+    end if;
 end $$;
 
 select set_config('request.jwt.claim.sub', current_setting('test.student_b'), true);
@@ -86,6 +104,8 @@ do $$ begin
     if exists (select 1 from public.custom_calendar_events where classroom_id = current_setting('test.class_a')::uuid) then
         raise exception 'TEST_FAIL: other class owner can read event';
     end if;
+    update public.custom_calendar_events set name = '타 학급 수정' where classroom_id = current_setting('test.class_a')::uuid;
+    if found then raise exception 'TEST_FAIL: other owner can update event'; end if;
     begin
         insert into public.custom_calendar_events (classroom_id, created_by, event_date, end_date, name)
         values (current_setting('test.class_a')::uuid, auth.uid(), '2026-11-03', '2026-11-03', '타 학급 등록');
@@ -124,4 +144,4 @@ do $$ begin
 end $$;
 reset role;
 rollback;
-select 'PASS: teacher registration/deletion, enrolled-student read, other-class isolation, withdrawal/deletion revocation, anonymous denial, legacy-policy guards. Fixtures rolled back.' as result;
+select 'PASS: teacher registration/update/deletion, immutable classroom/creator, enrolled-student read, other-class isolation, withdrawal/deletion revocation, anonymous denial, legacy-policy guards. Fixtures rolled back.' as result;

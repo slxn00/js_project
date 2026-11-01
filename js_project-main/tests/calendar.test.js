@@ -31,7 +31,7 @@ test('날짜를 정규화하고 잘못된 날짜는 제외한다', () => {
 function fixture(result = { data: [], error: null }) {
   const calls = [];
   const query = {};
-  for (const method of ['select', 'eq', 'gte', 'lte', 'order', 'insert', 'delete', 'single']) {
+  for (const method of ['select', 'eq', 'gte', 'lte', 'order', 'insert', 'update', 'delete', 'single']) {
     query[method] = (...args) => { calls.push([method, ...args]); return query; };
   }
   query.then = (resolve, reject) => Promise.resolve(result).then(resolve, reject);
@@ -80,4 +80,19 @@ test('삭제는 학급과 일정 ID를 모두 제한하며 권한 없는 삭제�
     ['eq', 'classroom_id', 'class-a'], ['eq', 'id', 'event-a'],
   ]);
   await assert.rejects(fixture().store.deleteEvent('other-class', 'event-a'), /삭제 권한/);
+});
+
+test('수정은 지정한 학급의 일정 내용과 날짜만 변경한다', async () => {
+  const f = fixture({ data: [{ id: 'event-a' }], error: null });
+  await f.store.updateEvent('class-a', 'event-a', { ...event, name: ' 수정된 시험 ', description: ' 새 설명 ' });
+  assert.deepEqual(f.calls.find(call => call[0] === 'update')[1], {
+    name: '수정된 시험', description: '새 설명', event_date: event.start, end_date: event.end,
+  });
+  assert.deepEqual(f.calls.filter(call => call[0] === 'eq'), [
+    ['eq', 'classroom_id', 'class-a'], ['eq', 'id', 'event-a'],
+  ]);
+  await assert.rejects(fixture().store.updateEvent('a', 'missing', { ...event, name: '시험', description: '' }), /수정 권한/);
+  const invalid = fixture();
+  await assert.rejects(invalid.store.updateEvent('a', 'b', { ...event, name: ' ', description: '' }), /확인/);
+  assert.equal(invalid.calls.length, 0);
 });

@@ -49,19 +49,23 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .schedule-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .schedule-toolbar label { display: flex; align-items: center; gap: 4px; color: #758297; font-size: 11px; }
 .schedule-toolbar input { accent-color: #347df1; }
+.schedule-card { display: block; margin-top: 13px; }
+.schedule-card-heading { display: flex; align-items: flex-start; gap: 12px; }
+.schedule-card-heading > div:last-child { min-width: 0; }
 .schedule-status { color: #758297; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
-.student-schedule-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-.student-event { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid #dfe8f7; border-radius: 14px; background: #f8faff; }
+.student-schedule-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.student-event { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e7edf7; }
 .event-info { flex: 1; min-width: 0; }
 .event-info h3 { margin: 0 0 7px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
-.event-date { margin: 0; color: #6b7c95; font-size: 11px; line-height: 1.6; }
-.event-description { margin: 7px 0 0; color: #758297; font-size: 12px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.schedule-card .event-date { margin: 0; color: #6b7c95; font-size: 11px; line-height: 1.6; }
+.schedule-card .event-description { margin: 7px 0 0; color: #758297; font-size: 12px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
 .event-countdown { display: flex; flex-shrink: 0; flex-direction: column; align-items: center; gap: 6px; }
-.dday-badge { padding: 6px 9px; border-radius: 8px; background: #e4eeff; color: #2869d7; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.dday-badge { display: grid; place-items: center; min-width: 76px; min-height: 58px; padding: 10px; border-radius: 12px; background: #edf4ff; color: #2869d7; font-size: 25px; font-weight: 800; letter-spacing: -.7px; white-space: nowrap; }
 .event-state { color: #8a97a9; font-size: 10px; }
 .student-event[data-state="today"] .dday-badge { background: #fff0ed; color: #d94f42; }
+.student-event[data-state="today"] .dday-badge,
+.student-event[data-state="ongoing"] .dday-badge { font-size: 18px; letter-spacing: 0; }
 .student-event[data-state="ongoing"] .dday-badge { background: #e7f6ef; color: #24805b; }
-.student-event[data-state="past"] { background: #fafbfc; }
 .student-event[data-state="past"] .dday-badge { background: #edf0f4; color: #758297; }
 
 .join-dialog { width: min(420px, calc(100vw - 30px)); max-height: min(90dvh, 760px); overflow: auto; padding: 25px 23px 22px; border: 0; border-radius: 18px; box-shadow: 0 24px 80px #10244755; color: #17233d; }
