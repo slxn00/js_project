@@ -1,58 +1,65 @@
 :root {
     font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-    color: #222;
-    background: #f2f2f2;
-    font-synthesis: none;
-    --camera-blue: #3182F6;
+    --camera-blue: #1f7cff;
+    --text-white: #ffffff;
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; }
-button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-button { font: inherit; cursor: pointer; }
-button:disabled { opacity: .4; cursor: default; }
-button:focus-visible, a:focus-visible { outline: 3px solid #767676; outline-offset: 4px; }
-[hidden] { display: none !important; }
+* {
+    box-sizing: border-box;
+}
 
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+body {
+    overflow: hidden;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* 전체 화면 */
 .camera-app {
-    width: min(100%, 480px);
+    position: relative;
+    width: 100%;
+    max-width: 480px;
     height: 100vh;
     height: 100dvh;
-    min-height: 360px;
     margin: 0 auto;
-    display: grid;
-    grid-template-rows: calc(104px + env(safe-area-inset-top, 0px)) minmax(0, 1fr) calc(140px + env(safe-area-inset-bottom, 0px));
-    background: white;
-}
-
-.prompt-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: env(safe-area-inset-top, 0px) 20px 0;
-}
-
-.prompt-chip {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 148px;
-    min-height: 56px;
-    padding: 9px 24px;
-    margin: 0;
-    background: var(--camera-blue);
-    color: #fff;
-    border-radius: 10px;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -.5px;
-}
-
-.viewfinder {
-    position: relative;
-    min-height: 0;
+    background: #000;
     overflow: hidden;
-    background: #d9d9d9;
+}
+
+/* 카메라 화면 */
+.viewfinder {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    overflow: hidden;
 }
 
 .viewfinder video,
@@ -63,38 +70,204 @@ button:focus-visible, a:focus-visible { outline: 3px solid #767676; outline-offs
     width: 100%;
     height: 100%;
     display: block;
+    object-fit: cover;
 }
 
-.viewfinder video,
-.viewfinder img { object-fit: cover; }
-.camera-placeholder { background: #d9d9d9; }
-.live-badge { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 5px; background: #0006; color: white; font-size: 10px; letter-spacing: 1px; }
-.live-badge span { width: 5px; height: 5px; background: #fff; border-radius: 50%; }
+.camera-placeholder {
+    background: #000;
+}
 
-.camera-controls {
+/* live 뱃지는 지금 느낌엔 안 어울리니까 숨김 */
+.live-badge {
+    display: none;
+}
+
+/* 제시어 + 안내문구 영역 */
+.prompt-area {
+    position: absolute;
+    left: 50%;
+    bottom: 240px;
+    transform: translateX(-50%);
+    width: min(86%, 320px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
-    background: white;
+    z-index: 3;
+    text-align: center;
+    pointer-events: none;
 }
 
-.camera-status { margin: 0; max-width: 380px; font-size: 11px; line-height: 1.6; color: #777; text-align: center; overflow-wrap: anywhere; }
-.camera-status.error { color: #a14136; }
+/* 제시어 */
+.prompt-chip {
+    margin: 0 0 26px;
+    padding: 0;
+    background: transparent;
+    color: var(--camera-blue);
+    border-radius: 0;
+    min-width: 0;
+    min-height: 0;
+    font-size: 60px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -2px;
+    box-shadow: none;
+}
+
+/* 상태 문구 */
+.camera-status {
+    margin: 0;
+    color: var(--text-white);
+    font-size: 16px;
+    line-height: 1.8;
+    font-weight: 400;
+    text-align: center;
+    white-space: pre-line;
+    opacity: 0.95;
+}
+
+.camera-status.error {
+    color: #ff8e8e;
+}
+
+/* 하단 버튼 영역 */
+.camera-controls {
+    position: absolute;
+    left: 50%;
+    bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    z-index: 4;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+
+    padding: 0 24px;
+    background: transparent;
+}
+
+/* 촬영 버튼 */
+.shutter-button {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: #f4f4f4;
+    border: 5px solid rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.shutter-button span {
+    display: block;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #dcdcdc;
+}
+
+.shutter-button:active {
+    transform: scale(0.96);
+}
+
+/* 촬영 후 보이는 버튼들 */
+.photo-actions {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.photo-actions>* {
+    flex: 1;
+    min-width: 0;
+}
 
 .primary-button,
-.secondary-button { display: flex; align-items: center; justify-content: center; min-height: 46px; min-width: 148px; padding: 11px 20px; border: 0; border-radius: 9px; font-size: 13px; font-weight: 600; text-decoration: none; }
-.primary-button { background: var(--camera-blue); color: white; }
-.secondary-button { background: #eee; color: #333; }
-.photo-actions { display: flex; justify-content: center; gap: 10px; width: 100%; }
-.photo-actions > * { flex: 1; min-width: 0; }
+.secondary-button {
+    min-height: 48px;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-.shutter-button { flex-shrink: 0; width: 62px; height: 62px; padding: 5px; border: 2px solid var(--camera-blue); background: white; border-radius: 50%; }
-.shutter-button span { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--camera-blue); }
-.shutter-button:active span { opacity: .75; }
+.primary-button {
+    background: var(--camera-blue);
+    color: #fff;
+}
 
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.secondary-button {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
 
-@media (max-height: 560px) { .camera-app { grid-template-rows: 80px minmax(0, 1fr) 118px; }.camera-controls { gap: 7px; padding: 8px 18px; } }
+/* 스크린리더용 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 430px) {
+    .prompt-area {
+        bottom: 220px;
+        width: min(88%, 300px);
+    }
+
+    .prompt-chip {
+        font-size: 56px;
+    }
+
+    .camera-status {
+        font-size: 15px;
+    }
+
+    .shutter-button {
+        width: 74px;
+        height: 74px;
+    }
+
+    .shutter-button span {
+        width: 54px;
+        height: 54px;
+    }
+}
+
+@media (max-height: 700px) {
+    .prompt-area {
+        bottom: 200px;
+    }
+
+    .prompt-chip {
+        font-size: 52px;
+        margin-bottom: 20px;
+    }
+
+    .camera-status {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .camera-controls {
+        bottom: calc(34px + env(safe-area-inset-bottom, 0px));
+    }
+}
