@@ -84,10 +84,10 @@
 .end-5 { grid-column-end: 6; }
 .end-6 { grid-column-end: 7; }
 .end-7 { grid-column-end: 8; }
-.lane-1 { grid-row: 1; --event-fill: #edf3ff; --event-text: #31598e; }
-.lane-2 { grid-row: 2; --event-fill: #cadfff; --event-text: #234f89; }
-.lane-3 { grid-row: 3; --event-fill: #a4c6f5; --event-text: #193d70; }
-.lane-4 { grid-row: 4; --event-fill: #7fa7df; --event-text: #122e56; }
+.lane-1 { grid-row: 1; --event-fill: #d4e4ff; --event-text: #254e86; }
+.lane-2 { grid-row: 2; --event-fill: #b3cef5; --event-text: #1d4478; }
+.lane-3 { grid-row: 3; --event-fill: #8eb4e8; --event-text: #183b6c; }
+.lane-4 { grid-row: 4; --event-fill: #6d95ce; --event-text: #102d55; }
 .calendar-help { flex-shrink: 0; margin: 14px 2px 0; color: #64738a; font-size: 12px; line-height: 1.6; }
 .calendar-footnote { flex-shrink: 0; height: 36px; margin: 7px 2px 0; overflow-y: auto; color: #8996a9; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 #neisSchoolChoices:not([hidden]) { display: grid; gap: 6px; max-height: 140px; overflow-y: auto; margin: 10px 0; }
@@ -114,6 +114,26 @@
 .calendar-editor-error { min-height: 18px; margin: 0; color: #f04452; font-size: 12px; line-height: 1.5; }
 .calendar-editor .required-mark { color: #f04452; }
 .calendar-editor [aria-invalid="true"] { border-color: #f04452; background: #fff8f8; }
+
+.attendance-settings .calendar-editor-head { margin-bottom: 0; }
+.attendance-required-note { margin: 0; color: #8b95a1; font-size: 12px; text-align: right; }
+.attendance-policy { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.attendance-policy legend { margin-bottom: 10px; font-size: 13px; font-weight: 700; }
+.attendance-option { display: flex; align-items: center; gap: 10px; margin: 0; padding: 13px; border: 1px solid #d9e2ec; border-radius: 12px; cursor: pointer; }
+.attendance-option:has(input:checked) { border-color: #3182f6; background: #f3f7ff; }
+.attendance-option input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; padding: 0; accent-color: #3182f6; }
+.attendance-option span { display: grid; gap: 5px; }
+.attendance-option strong { font-size: 13px; }
+.attendance-option small { color: #748094; font-size: 12px; font-weight: 400; line-height: 1.5; }
+.attendance-time-fields { display: flex; gap: 12px; margin-top: 4px; }
+.attendance-time-fields > div { display: grid; flex: 1; min-width: 0; gap: 8px; }
+.attendance-time-fields > div[hidden] { display: none; }
+.attendance-time-fields input { text-align: center; font-size: 20px; font-variant-numeric: tabular-nums; }
+.attendance-time-hint { margin: 0; color: #748094; font-size: 12px; line-height: 1.7; }
+.attendance-deadline-preview { margin: 4px 0 0; padding: 14px; border-radius: 12px; background: #edf4ff; color: #285b9e; font-size: 13px; font-weight: 600; line-height: 1.7; white-space: pre-line; }
+.attendance-settings-buttons { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.attendance-settings-buttons button { min-height: 46px; margin: 0; border: 0; border-radius: 11px; font-weight: 700; }
+.attendance-settings-buttons [data-cancel] { background: #f2f4f7; color: #64738a; }
 
 .calendar-tooltip,
 .calendar-context-menu { position: fixed; left: var(--popup-x, 8px); top: var(--popup-y, 8px); max-width: calc(100vw - 16px); max-height: min(360px, calc(100dvh - 16px)); overflow-y: auto; border: 1px solid #dfe7f3; background: #fff; color: #293852; box-shadow: 0 12px 40px #17233d26; }

@@ -27,6 +27,12 @@ function normalizeState(data) {
     return { attendance: null, challenge };
 }
 
+export function attendanceMessage(attendance) {
+    if (attendance?.arrivalStatus === 'late') return '사진 인증이 완료됐어요. 지각으로 기록됐어요.';
+    if (attendance?.arrivalStatus === 'on_time') return '사진 인증과 정상 등교 기록이 저장됐어요.';
+    return '사진 인증과 출석 저장이 완료됐어요.';
+}
+
 export function currentGPS() {
     return new Promise((resolve, reject) => {
         if (!globalThis.isSecureContext || !navigator.geolocation) return reject(new Error('위치 인증은 HTTPS 또는 localhost에서 사용할 수 있어요.'));

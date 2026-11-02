@@ -4,6 +4,7 @@ import { redirectAuthCallbackError } from "./auth-callback.js";
 import { createClassroomStore } from './classroom-store.js';
 import { createClassroomDialog } from './classroom-dialog.js';
 import { createAdminCalendar } from './admin-calendar.js';
+import { createAttendanceSettings, deadlineSummary } from './attendance-settings.js';
 
 const hasAuthCallbackError = redirectAuthCallbackError();
 
@@ -20,6 +21,15 @@ const classrooms = createClassroomStore(supabase);
 const calendar = createAdminCalendar(supabase);
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 const manageClassroom = createClassroomDialog($('#classroomManageDialog'));
+const openAttendanceSettings = createAttendanceSettings($('#attendanceSettingsDialog'), async (id, values) => {
+  const deadline = await classrooms.setAttendanceDeadline(id, values);
+  ownedClasses = ownedClasses.map(item => item.id === id ? { ...item, attendanceDeadline: deadline } : item);
+  renderClassPanel();
+  const summary = $('#joinClassSummary');
+  summary.textContent = '등교시간을 저장했어요. 다음 사진 제출부터 적용됩니다.';
+  summary.classList.remove('is-error');
+  summary.hidden = false;
+});
 let accountUserId = null;
 let ownedClasses = [];
 let joinedClasses = [];
@@ -241,7 +251,19 @@ function classCard(item, managed = false) {
   card.querySelector('p').textContent = item.school.name;
   card.querySelector('.class-code').textContent = item.code;
   if (managed) {
-    const remove = card.querySelector('button');
+    const actions = card.querySelector('.class-actions');
+    actions.hidden = false;
+    const toggle = actions.querySelector('summary');
+    toggle.setAttribute('aria-label', `${item.className} 학급 설정`);
+    actions.querySelector('[data-attendance-settings]').addEventListener('click', () => {
+      actions.open = false;
+      toggle.focus();
+      openAttendanceSettings(item);
+    });
+    const deadline = card.querySelector('.class-deadline');
+    deadline.textContent = deadlineSummary(item.attendanceDeadline).replace('\n', ' · ');
+    deadline.hidden = false;
+    const remove = card.querySelector('.delete-class-button');
     remove.textContent = '학급 삭제';
     remove.setAttribute('aria-label', `${item.className} 학급 삭제`);
     remove.addEventListener('click', () => manageClassroom({
@@ -262,7 +284,7 @@ function classCard(item, managed = false) {
       },
     }));
   } else {
-    const leave = card.querySelector('button');
+    const leave = card.querySelector('.delete-class-button');
     leave.textContent = '학급 탈퇴';
     leave.setAttribute('aria-label', `${item.className} 학급 탈퇴`);
     leave.addEventListener('click', () => manageClassroom({

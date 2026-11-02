@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 import { createClassroomStore } from './classroom-store.js';
 import { CameraSession } from './checkin/camera-session.js';
-import { createPhotoCheckinClient } from './checkin/client.js';
+import { createPhotoCheckinClient, attendanceMessage } from './checkin/client.js';
 
 const $ = selector => document.querySelector(selector);
 const checkin = createPhotoCheckinClient(supabase);
@@ -43,10 +43,10 @@ function render(next) {
 function completed(attendance) {
     camera.stop();
     render('completed');
-    $('#promptLabel').textContent = '등교 완료';
+    $('#promptLabel').textContent = attendance.arrivalStatus === 'late' ? '지각 등교 완료' : '등교 완료';
     $('#promptHint').textContent = '오늘 출석이 저장됐어요.';
-    const time = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' }).format(new Date(attendance.verifiedAt));
-    status(`${time} · 사진 인증을 완료했어요.`, 'success');
+    const time = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(attendance.submittedAt || attendance.verifiedAt));
+    status(`${time} · ${attendanceMessage(attendance)}`, 'success');
 }
 function showPrompt(value) {
     challenge = value;

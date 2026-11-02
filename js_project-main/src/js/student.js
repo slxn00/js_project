@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 import { createClassroomStore } from './classroom-store.js';
 import { createCalendarStore, eventTiming, eventRange, todayISO } from './calendar.js';
-import { createPhotoCheckinClient } from './checkin/client.js';
+import { createPhotoCheckinClient, attendanceMessage } from './checkin/client.js';
 
 const $ = (selector) => document.querySelector(selector);
 const classrooms = createClassroomStore(supabase);
@@ -32,7 +32,7 @@ function showStatus(message, kind = '') {
 
 function setActionState() {
   actionButton.disabled = !ready || busy || Boolean(attendance);
-  actionButton.textContent = attendance ? '오늘 등교 완료' : joinedClasses.length ? '등교했어요' : '학급 입장';
+  actionButton.textContent = attendance ? `오늘 등교 완료${attendance.arrivalStatus === 'late' ? ' · 지각' : ''}` : joinedClasses.length ? '등교했어요' : '학급 입장';
 }
 
 function showScheduleStatus(message, error = false) {
@@ -67,7 +67,7 @@ async function refreshAttendance() {
     if (!ready || busy || classId !== joinedClasses[0]?.id || day !== todayISO()) return;
     attendance = result.attendance;
     attendanceDay = day;
-    showStatus(attendance ? '사진 인증과 출석 저장이 완료됐어요.' : '', attendance ? 'success' : '');
+    showStatus(attendance ? attendanceMessage(attendance) : '', attendance ? 'success' : '');
     setActionState();
   } catch (error) {
     if (ready && !busy && classId === joinedClasses[0]?.id) showStatus(error.message, 'error');
@@ -189,7 +189,7 @@ async function verifyAttendance() {
     if (result.attendance) {
       attendance = result.attendance;
       attendanceDay = todayISO();
-      showStatus('오늘 사진 인증과 출석 저장이 완료됐어요.', 'success');
+      showStatus(attendanceMessage(attendance), 'success');
     } else if (result.challenge) {
       window.location.assign(`/camera.html?classroom=${encodeURIComponent(classId)}`);
     } else {

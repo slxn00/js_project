@@ -1,3 +1,5 @@
+import { parseDeadline } from './attendance-settings.js';
+
 export function classroomError(error) {
     const message = error?.message || ''
     if (/Invalid API key/i.test(message)) return new Error('데이터베이스 연결 키를 확인해 주세요.')
@@ -10,13 +12,15 @@ export function classroomError(error) {
     if (/LOGIN_REQUIRED/.test(message)) return new Error('로그인 후 학급에 입장해 주세요.')
     if (/INVALID_NAME/.test(message)) return new Error('성함을 1~50자로 입력해 주세요.')
     if (/INVALID_CODE/.test(message)) return new Error('학급코드 5자리를 확인해 주세요.')
+    if (/INVALID_DEADLINE/.test(message)) return new Error('등교시간과 마감 기준을 정확히 입력해 주세요.')
     if (error?.code === '23505') return new Error('이미 사용 중인 학급코드입니다. 다시 생성해 주세요.')
     if (/fetch|network/i.test(message)) return new Error('서버에 연결하지 못했어요. 네트워크를 확인해 주세요.')
     return new Error(message || '학급 정보를 불러오지 못했어요. 다시 시도해 주세요.')
 }
 
 function fromRow(row) {
-    return { id: row.id, ownerId: row.owner_id, code: row.code, className: row.class_name, school: { name: row.school_name, latitude: row.latitude, longitude: row.longitude }, radiusMeters: row.radius_meters, createdAt: row.created_at, deletedAt: row.deleted_at || null }
+    return { id: row.id, ownerId: row.owner_id, code: row.code, className: row.class_name, school: { name: row.school_name, latitude: row.latitude, longitude: row.longitude }, radiusMeters: row.radius_meters, createdAt: row.created_at, deletedAt: row.deleted_at || null,
+        attendanceDeadline: row.checkin_deadline && row.checkin_deadline_precision ? { time: row.checkin_deadline, precision: row.checkin_deadline_precision } : null }
 }
 
 export function createClassroomStore(client) {
@@ -102,6 +106,14 @@ export function createClassroomStore(client) {
             const cleanName = name.trim()
             if (!cleanName || cleanName.length > 50) throw new Error('성함을 1~50자로 입력해 주세요.')
             return managementRequest('rename_checkin_member', { p_classroom_id: classId, p_user_id: userId, p_name: cleanName })
+        },
+        async setAttendanceDeadline(classId, input) {
+            const value = parseDeadline(input)
+            const data = await managementRequest('set_checkin_deadline', {
+                p_classroom_id: classId, p_hour: value.hour, p_minute: value.minute, p_second: value.second, p_precision: value.precision,
+            })
+            if (!data.deadline?.time || !['minute', 'second'].includes(data.deadline.precision)) throw new Error('저장된 등교시간을 확인하지 못했어요. 다시 확인해 주세요.')
+            return data.deadline
         },
     }
 }

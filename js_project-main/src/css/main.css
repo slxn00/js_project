@@ -320,6 +320,7 @@ button {
 }
 
 .created-class-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -333,7 +334,11 @@ button {
     margin: 0;
     color: #17233d;
     font-size: 15px;
+    padding-right: 30px;
 }
+.created-class-card .class-actions { position: absolute; top: 8px; right: 8px; }
+.created-class-card .class-actions[hidden] { display: none; }
+.created-class-card .class-deadline { padding: 8px 10px; border-radius: 7px; background: #eaf1ff; color: #2b68d7; line-height: 1.6; letter-spacing: 0; text-align: left; }
 
 .created-class-card p {
     margin: 0 0 8px;

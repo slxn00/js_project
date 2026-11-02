@@ -220,6 +220,51 @@
         </form>
     </dialog>
 
+    <dialog id="attendanceSettingsDialog" class="calendar-editor attendance-settings" aria-labelledby="attendanceSettingsTitle">
+        <form id="attendanceSettingsForm" novalidate>
+            <div class="calendar-editor-head">
+                <div>
+                    <h2 id="attendanceSettingsTitle">등교시간 설정</h2>
+                    <p id="attendanceSettingsClass"></p>
+                </div>
+                <button type="button" data-close class="calendar-editor-close" aria-label="등교시간 설정 닫기">×</button>
+            </div>
+            <p class="attendance-required-note"><span class="required-mark">*</span> 필수 항목</p>
+            <fieldset class="attendance-policy">
+                <legend>마감 기준 <span class="required-mark">*</span></legend>
+                <label class="attendance-option">
+                    <input type="radio" name="deadlinePrecision" value="minute" required>
+                    <span><strong>분 단위로 마감</strong><small>설정한 분의 59초까지 정상 등교로 처리해요.</small></span>
+                </label>
+                <label class="attendance-option">
+                    <input type="radio" name="deadlinePrecision" value="second" required>
+                    <span><strong>초 단위로 마감</strong><small>입력한 시·분·초까지 정상 등교로 처리해요.</small></span>
+                </label>
+            </fieldset>
+            <div class="attendance-time-fields">
+                <div>
+                    <label for="attendanceHour">시 <span class="required-mark">*</span></label>
+                    <input id="attendanceHour" type="number" inputmode="numeric" min="0" max="23" step="1" placeholder="08" required aria-describedby="attendanceTimeHint">
+                </div>
+                <div>
+                    <label for="attendanceMinute">분 <span class="required-mark">*</span></label>
+                    <input id="attendanceMinute" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="00" required>
+                </div>
+                <div id="attendanceSecondGroup" hidden>
+                    <label for="attendanceSecond">초 <span class="required-mark">*</span></label>
+                    <input id="attendanceSecond" type="number" inputmode="numeric" min="0" max="59" step="1" placeholder="00" disabled>
+                </div>
+            </div>
+            <p id="attendanceTimeHint" class="attendance-time-hint">24시간제 · 한국 시간 기준<br>인증 사진을 제출한 시각으로 판단하며, AI 판정 대기 시간은 포함하지 않아요.</p>
+            <p id="attendanceDeadlinePreview" class="attendance-deadline-preview" role="status" aria-live="polite">등교시간과 마감 기준을 입력해 주세요.</p>
+            <p id="attendanceSettingsError" class="calendar-editor-error" role="status"></p>
+            <div class="attendance-settings-buttons">
+                <button type="button" data-cancel>취소</button>
+                <button type="submit" class="calendar-editor-submit">저장하기</button>
+            </div>
+        </form>
+    </dialog>
+
     <div id="calendarTooltip" class="calendar-tooltip" role="tooltip" hidden>
         <strong id="calendarTooltipTitle"></strong>
         <div id="calendarTooltipEvents"></div>
@@ -245,7 +290,14 @@
     </template>
     <template id="adminClassCardTemplate">
         <article class="created-class-card">
+            <details class="member-actions class-actions" name="member-actions" hidden>
+                <summary class="member-menu-toggle" title="학급 설정">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+                </summary>
+                <div class="member-menu"><button type="button" data-attendance-settings aria-haspopup="dialog">등교시간 설정</button></div>
+            </details>
             <h3></h3><p></p><strong class="class-code"></strong><small>학급 참여코드</small>
+            <small class="class-deadline" hidden></small>
             <button type="button" class="delete-class-button"></button>
         </article>
     </template>
