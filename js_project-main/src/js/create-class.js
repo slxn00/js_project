@@ -272,9 +272,8 @@ function selectSchool(place) {
 
 // 6. 검색 결과 목록 표시
 function renderSchoolResults(places) {
-    schoolResults.replaceChildren();
-
     if (!places.length) {
+        schoolResults.replaceChildren();
         setMessage(
             searchStatus,
             "검색 결과가 없습니다. 학교 이름을 다시 입력해 주세요."
@@ -287,8 +286,9 @@ function renderSchoolResults(places) {
         `${places.length}개의 결과가 있습니다. 학교를 선택해 주세요.`
     );
 
-    places.forEach((place) => {
-        const button = document.getElementById('schoolResultTemplate').content.firstElementChild.cloneNode(true);
+    const template = document.getElementById('schoolResultTemplate');
+    const buttons = places.map((place) => {
+        const button = template.content.firstElementChild.cloneNode(true);
         button.querySelector('strong').textContent = place.place_name;
         button.querySelector('span').textContent = place.road_address_name || place.address_name || '주소 정보 없음';
 
@@ -296,8 +296,9 @@ function renderSchoolResults(places) {
             selectSchool(place);
         });
 
-        schoolResults.appendChild(button);
+        return button;
     });
+    schoolResults.replaceChildren(...buttons);
 }
 
 // 7. 학교 검색 실행
@@ -357,9 +358,7 @@ function searchSchool() {
 
 // 8. 버튼 상태
 function updateCreateButton() {
-    createButton.disabled =
-        !selectedSchool ||
-        !classNameInput.value.trim();
+    createButton.disabled = !selectedSchool;
 }
 
 // 9. 학교 검색 버튼
@@ -400,12 +399,6 @@ $("#changeSchool").addEventListener("click", () => {
     schoolSearch.focus();
 });
 
-// 학급명 입력
-classNameInput.addEventListener(
-    "input",
-    updateCreateButton
-);
-
 // 반경 변경
 radiusInput.addEventListener("input", updateRadius);
 
@@ -413,16 +406,15 @@ radiusInput.addEventListener("input", updateRadius);
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const className = classNameInput.value.trim();
-
-    if (!className || !selectedSchool) {
+    if (!selectedSchool) {
         setMessage(
             saveStatus,
-            "학급명과 학교를 입력해 주세요."
+            "학교를 선택해 주세요."
         );
         return;
     }
 
+    const className = classNameInput.value.trim() || defaultClassName;
     createButton.disabled = true;
 
     try {
@@ -499,17 +491,10 @@ const classNameExamples = [
     "우리들의 교실"
 ];
 
-function setRandomPlaceholder() {
-    const randomIndex = Math.floor(
-        Math.random() * classNameExamples.length
-    );
-
-    document.querySelector("#className").placeholder =
-        `예) ${classNameExamples[randomIndex]}`;
-}
-
-// 학급 생성창이 열릴 때 자동 실행
-setRandomPlaceholder();
+// 창을 열 때 고른 예시를 미리 보여 주고, 학급명을 비우면 그대로 사용한다.
+const randomIndex = Math.trunc(Math.random() * classNameExamples.length);
+const defaultClassName = classNameExamples[randomIndex];
+classNameInput.placeholder = `예) ${defaultClassName}`;
 
 
 // 초기 실행

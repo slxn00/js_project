@@ -61,15 +61,13 @@
                                 <span class="step">1</span>
                                 <div>
                                     <h2>클래스 정보</h2>
-                                    <p>클래스 이름을 입력해 주세요.</p>
+                                    <p id="classNameHelp">학급명을 비워 두면 예시 이름으로 생성됩니다.</p>
                                 </div>
                             </div>
 
-                            <label for="className">
-                                학급명 <span class="required">*</span>
-                            </label>
+                            <label for="className">학급명 (선택)</label>
 
-                            <input id="className" maxlength="50" placeholder="ex ) 이번 학기에도 잘해보자 " required>
+                            <input id="className" maxlength="50" aria-describedby="classNameHelp">
                         </section>
 
                         <section class="form-section">

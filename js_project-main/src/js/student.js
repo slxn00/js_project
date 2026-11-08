@@ -92,8 +92,7 @@ async function loadSchedule({ silent = false } = {}) {
   try {
     const events = await calendar.getEvents(school.id, { start: today });
     if (token !== scheduleRequest) return;
-    const rows = [];
-    for (const event of events) {
+    const rows = events.map(event => {
       const row = clone('studentEventTemplate');
       const timing = eventTiming(event, today);
       row.dataset.state = timing.state;
@@ -103,8 +102,8 @@ async function loadSchedule({ silent = false } = {}) {
       description.textContent = event.description;
       description.hidden = !event.description;
       row.querySelector('.dday-badge').textContent = timing.label;
-      rows.push(row);
-    }
+      return row;
+    });
     scheduleList.replaceChildren(...rows);
     showScheduleStatus(events.length ? '' : '등록된 학사일정이 아직 없어요.');
   } catch (error) {
@@ -298,7 +297,7 @@ joinForm.addEventListener('submit', async (event) => {
   }
   busy = true;
   $('#joinSubmit').disabled = true;
-  $('#joinSubmit').textContent = '입장 중...';
+  $('#joinSubmit').textContent = '로딩 중 ..';
   try {
     await classrooms.joinClass({ name, code });
     joinDialog.close();

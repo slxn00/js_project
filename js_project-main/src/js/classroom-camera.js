@@ -19,7 +19,7 @@ let rejected = false;
 let stage = 'loading';
 let loadVersion = 0;
 let away = false;
-
+    
 function status(message, kind = '') {
     $('#cameraStatus').textContent = message;
     $('#cameraStatus').className = `camera-status ${kind}`.trim();

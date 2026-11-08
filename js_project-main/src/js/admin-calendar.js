@@ -244,22 +244,24 @@ export function createAdminCalendar(client) {
     if (school.status === 'fulfilled' && !school.value.error && school.value.data?.status === 'ok') {
       entries.push(...(school.value.data.events || [])
         .filter(event => !/^토요일?휴업일$/.test((event.name || '').replace(/\s/g, '')))
-        .map(event => ({
-        name: event.name, description: event.description || '', source: 'neis',
-        start: normalizedDate(event.date), end: normalizedDate(event.date),
-        isHoliday: event.isHoliday,
-      })).filter(event => event.start));
+        .map(event => {
+          const date = normalizedDate(event.date);
+          return {
+            name: event.name, description: event.description || '', source: 'neis',
+            start: date, end: date, isHoliday: event.isHoliday,
+          };
+        }).filter(event => event.start));
     } else if (school.status === 'fulfilled' && school.value.data?.status === 'choose-school') {
-      choices.replaceChildren();
-      for (const school of school.value.data.schools || []) {
+      const buttons = (school.value.data.schools || []).map(school => {
         const button = clone('calendarSchoolTemplate');
         button.textContent = `${school.name} (${school.address || '주소 없음'})`;
         button.addEventListener('click', () => {
           selectedSchool = { officeCode: school.officeCode, schoolCode: school.schoolCode };
           void loadSchedule();
         });
-        choices.append(button);
-      }
+        return button;
+      });
+      choices.replaceChildren(...buttons);
       choices.hidden = false;
       messages.push('나이스 일정을 확인할 학교를 선택해 주세요.');
     } else {
