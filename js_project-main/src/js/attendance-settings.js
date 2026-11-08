@@ -3,10 +3,11 @@ const pad = number => String(number).padStart(2, '0');
 export function parseDeadline({ hour, minute, second, precision }) {
     if (!['minute', 'second'].includes(precision)) throw new Error('마감 기준을 선택해 주세요.');
     const values = [hour, minute, precision === 'minute' ? '0' : second].map(value => String(value ?? '').trim());
-    if (values.some(value => !/^\d{1,2}$/.test(value)) || Number(values[0]) > 23 || values.slice(1).some(value => Number(value) > 59)) {
+    const [hours, minutes, seconds] = values.map(Number);
+    if (values.some(value => !/^\d{1,2}$/.test(value)) || hours > 23 || minutes > 59 || seconds > 59) {
         throw new Error('시는 0~23, 분과 초는 0~59 사이의 정수로 모두 입력해 주세요.');
     }
-    return { hour: Number(values[0]), minute: Number(values[1]), second: Number(values[2]), precision };
+    return { hour: hours, minute: minutes, second: seconds, precision };
 }
 
 export function deadlineSummary(deadline) {
