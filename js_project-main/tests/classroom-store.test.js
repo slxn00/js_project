@@ -42,6 +42,22 @@ function fakeClient({ user = owner, rows = [], members = [], joined = [], rpcErr
     }
 }
 
+test('동시에 조회한 학급은 인증 요청을 공유하고 이후 조회는 새로 인증한다', async () => {
+    const client = fakeClient({ rows: [row] })
+    let authCalls = 0
+    client.auth.getUser = async () => ({ data: { user: ++authCalls === 2 ? null : owner }, error: null })
+    const store = createClassroomStore(client)
+
+    const [owned, joined] = await Promise.all([store.getOwnedClasses(), store.getJoinedClasses()])
+    assert.equal(owned[0].id, row.id)
+    assert.deepEqual(joined, [])
+    assert.equal(authCalls, 1)
+
+    await assert.rejects(store.getJoinedClasses(), /로그인/)
+    assert.deepEqual(await store.getJoinedClasses(), [])
+    assert.equal(authCalls, 3)
+})
+
 test('입장은 로그인 계정으로 수행하고 사용자 ID를 폼에서 전달하지 않는다', async () => {
     const client = fakeClient()
     const result = await createClassroomStore(client).joinClass({ name: ' 민서연 ', code: 's42hn', userId: 'spoofed-user' })

@@ -1,7 +1,7 @@
 
 import { supabase } from "./supabaseClient.js";
-import { redirectAuthCallbackError } from "./auth-callback.js";
-import { createClassroomStore } from './classroom-store.js';
+import { redirectAuthCallbackError } from './auth.js';
+import { createClassroomStore, readSavedClasses, savedClassesKey } from './classroom-store.js';
 import { createClassroomDialog } from './classroom-dialog.js';
 import { createAdminCalendar } from './admin-calendar.js';
 import { createAttendanceSettings, deadlineSummary } from './attendance-settings.js';
@@ -219,23 +219,6 @@ function generateClassCode(existingCodes) {
   throw new Error("사용 가능한 학급 코드를 생성하지 못했습니다.");
 }
 
-// 현재 로그인 사용자의 임시 학급 데이터
-function storageKey(userId) {
-  return `teacherClasses:${userId}`;
-}
-
-function getSavedClasses(userId) {
-  try {
-    const saved = JSON.parse(
-      localStorage.getItem(storageKey(userId)) || "[]"
-    );
-
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
-}
-
 // 입장한 학급과 직접 관리하는 학급을 각각 표시한다.
 function renderClasses(classes) {
   ownedClasses = classes;
@@ -274,7 +257,7 @@ function classCard(item, managed = false) {
         await classrooms.deleteClass(item.id);
         // Clear this browser's legacy backup; the DB tombstone also protects other browsers.
         if (accountUserId) {
-          try { localStorage.setItem(storageKey(accountUserId), JSON.stringify(getSavedClasses(accountUserId).filter(saved => saved.id !== item.id))); }
+          try { localStorage.setItem(savedClassesKey(accountUserId), JSON.stringify(readSavedClasses(accountUserId).filter(saved => saved.id !== item.id))); }
           catch { /* The database remains the source of truth when local storage is blocked. */ }
         }
         joinedClasses = joinedClasses.filter(joined => joined.id !== item.id);
@@ -485,7 +468,7 @@ window.addEventListener("message", async (event) => {
 
     const userId = data.user.id;
 
-    const classes = await classrooms.getOwnedClasses(getSavedClasses(userId));
+    const classes = await classrooms.getOwnedClasses(readSavedClasses(userId));
 
     const existingCodes = new Set(
       classes.map((item) => item.code)
@@ -527,7 +510,6 @@ window.addEventListener("message", async (event) => {
 
 // 새로고침 후에도 임시 학급 표시
 async function initializeSavedClasses() {
-  let legacy = [];
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
@@ -536,8 +518,7 @@ async function initializeSavedClasses() {
       $('#membersStatus').textContent = '로그인 후 학급 멤버를 확인해 주세요.';
       return;
     }
-    legacy = getSavedClasses(data.user.id);
-    const classes = await classrooms.getOwnedClasses(legacy);
+    const classes = await classrooms.getOwnedClasses(readSavedClasses(data.user.id));
     ownedClassesLoaded = true;
     renderClasses(classes);
   } catch (error) {

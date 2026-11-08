@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient.js';
-import { createClassroomStore } from './classroom-store.js';
-import { redirectAuthCallbackError } from './auth-callback.js';
+import { createClassroomStore, readSavedClasses } from './classroom-store.js';
+import { redirectAuthCallbackError } from './auth.js';
 
 const message = document.querySelector('#routeMessage');
 const choices = document.querySelector('#routeChoices');
@@ -15,14 +15,8 @@ async function choosePage() {
     }
 
     // 기존 프로젝트의 localStorage 학급을 Supabase로 옮기는 동작도 유지.
-    let legacy = [];
-    try {
-      const saved = JSON.parse(localStorage.getItem(`teacherClasses:${data.user.id}`) || '[]');
-      if (Array.isArray(saved)) legacy = saved;
-    } catch { /* localStorage를 사용할 수 없는 경우 무시 */ }
-
     const [owned, joined] = await Promise.all([
-      classrooms.getOwnedClasses(legacy),
+      classrooms.getOwnedClasses(readSavedClasses(data.user.id)),
       classrooms.getJoinedClasses(),
     ]);
     if (owned.length) {

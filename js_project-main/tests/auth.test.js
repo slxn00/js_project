@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import vm from 'node:vm'
-import { getAuthCallbackError, redirectAuthCallbackError } from '../src/js/auth-callback.js'
+import { getAuthCallbackError, redirectAuthCallbackError } from '../src/js/auth.js'
 
 const root = new URL('../', import.meta.url)
 const email = 'teacher@example.com'
@@ -67,8 +67,6 @@ async function page(name, overrides = {}, query = '') {
             module = new vm.SyntheticModule(['createClient'], function () {
                 this.setExport('createClient', (url, key) => { clients.push({ url, key }); return { auth } })
             }, { context, identifier: url })
-        } else if (url.endsWith('.css')) {
-            module = new vm.SyntheticModule([], () => {}, { context, identifier: url })
         } else {
             module = new vm.SourceTextModule(sources.get(url), {
                 context, identifier: url,
@@ -80,7 +78,7 @@ async function page(name, overrides = {}, query = '') {
         modules.set(url, module)
         return module
     }
-    const paths = ['login', 'signup', 'auth-ui', 'auth-callback', 'supabaseClient']
+    const paths = ['login', 'signup', 'auth', 'supabaseClient']
     const sources = new Map(await Promise.all(paths.map(async path => {
         const url = new URL(`src/js/${path}.js`, root)
         return [url.href, await readFile(url, 'utf8')]

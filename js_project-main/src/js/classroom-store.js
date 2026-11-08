@@ -23,11 +23,29 @@ function fromRow(row) {
         attendanceDeadline: row.checkin_deadline && row.checkin_deadline_precision ? { time: row.checkin_deadline, precision: row.checkin_deadline_precision } : null }
 }
 
+export function savedClassesKey(userId) {
+    return `teacherClasses:${userId}`
+}
+
+export function readSavedClasses(userId) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(savedClassesKey(userId)) || '[]')
+        return Array.isArray(saved) ? saved : []
+    } catch {
+        return []
+    }
+}
+
 export function createClassroomStore(client) {
-    async function currentUser() {
-        const { data, error } = await client.auth.getUser()
-        if (error || !data.user) throw new Error('로그인 후 학급을 이용해 주세요.')
-        return data.user
+    let pendingUser
+
+    function currentUser() {
+        // 동시에 시작한 학급 조회만 같은 인증 요청을 공유한다.
+        pendingUser ??= client.auth.getUser().then(({ data, error }) => {
+            if (error || !data.user) throw new Error('로그인 후 학급을 이용해 주세요.')
+            return data.user
+        }).finally(() => { pendingUser = undefined })
+        return pendingUser
     }
     async function ownedClasses(user) {
         const { data, error } = await client.from('checkin_classrooms').select('*').eq('owner_id', user.id).order('created_at')

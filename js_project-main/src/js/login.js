@@ -1,7 +1,5 @@
-import '../css/style.css'
 import { supabase } from './supabaseClient.js'
-import { showAuthStatus, bindSocialAuth } from './auth-ui.js'
-import { getAuthCallbackError } from './auth-callback.js'
+import { showAuthStatus, bindSocialAuth, bindPasswordToggles, getAuthCallbackError } from './auth.js'
 
 const callbackError = getAuthCallbackError()
 if (callbackError) showAuthStatus(callbackError)
@@ -12,7 +10,6 @@ const emailInput = document.querySelector('#email')
 const passwordInput = document.querySelector('#password')
 const googleBtn = document.querySelector('#google-login-btn')
 const kakaoBtn = document.querySelector('#kakao-login-btn')
-const eyeBtns = document.querySelectorAll('.eye-btn')
 const loginBtn = document.querySelector('#login-btn')
 
     // 사용자가 다시 입력하기 시작하면 빨간색 에러 테두리 제거
@@ -24,14 +21,7 @@ const loginBtn = document.querySelector('#login-btn')
         }
     })
 
-// 1. 비밀번호 보이기/숨기기 토글
-eyeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target')
-        const targetInput = document.getElementById(targetId)
-        targetInput.type = targetInput.type === 'password' ? 'text' : 'password'
-    })
-})
+bindPasswordToggles()
 
 // 2. 이메일/비밀번호 로그인 처리
 if (loginForm) {
@@ -82,5 +72,5 @@ if (loginForm) {
     })
 }
 
-bindSocialAuth(googleBtn, 'google', '/main.html')
-bindSocialAuth(kakaoBtn, 'kakao', '/main.html')
+bindSocialAuth(supabase.auth, googleBtn, 'google', '/main.html')
+bindSocialAuth(supabase.auth, kakaoBtn, 'kakao', '/main.html')

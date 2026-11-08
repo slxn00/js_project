@@ -22,7 +22,6 @@ export default defineConfig({
                     'main',
                     'camera',
                     'create-class',
-                    'location',
                     'admin',
                     'student'
                 ].map(page => [

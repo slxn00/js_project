@@ -1,7 +1,5 @@
-import '../css/style.css'
 import { supabase } from './supabaseClient.js'
-import { showAuthStatus, bindSocialAuth } from './auth-ui.js'
-import { getAuthCallbackError } from './auth-callback.js'
+import { showAuthStatus, bindSocialAuth, bindPasswordToggles, getAuthCallbackError } from './auth.js'
 
 // DOM 요소
 const signupForm = document.querySelector('#signup-form')
@@ -24,7 +22,6 @@ const socialSection = document.querySelector('#social-section')
 
 const googleBtn = document.querySelector('#google-signup-btn')
 const kakaoBtn = document.querySelector('#kakao-signup-btn')
-const eyeBtns = document.querySelectorAll('.eye-btn')
 const signupBtn = document.querySelector('#signup-btn')
 
 let isSocialMode = false
@@ -192,14 +189,7 @@ verifyOtpBtn.addEventListener('click', async () => {
     }
 })
 
-// 5. 비밀번호 보기/숨기기 토글
-eyeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target')
-        const targetInput = document.getElementById(targetId)
-        targetInput.type = targetInput.type === 'password' ? 'text' : 'password'
-    })
-})
+bindPasswordToggles()
 
 // 6. 회원가입 제출 처리
 if (signupForm) {
@@ -265,5 +255,5 @@ if (signupForm) {
 }
 
 // 7. 소셜 회원가입 처리
-bindSocialAuth(googleBtn, 'google', '/signup.html')
-bindSocialAuth(kakaoBtn, 'kakao', '/signup.html')
+bindSocialAuth(supabase.auth, googleBtn, 'google', '/signup.html')
+bindSocialAuth(supabase.auth, kakaoBtn, 'kakao', '/signup.html')
