@@ -29,10 +29,26 @@ let isEmailVerified = false
 let verifiedEmail = ''
 let otpEmail = ''
 let otpBusy = false
+let otpCooldown = false
 
 // 이메일 정규식 검증 함수
 function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function updateSendOtpButton() {
+    const email = emailInput.value.trim()
+    sendOtpBtn.disabled = otpBusy || otpCooldown || isEmailVerified || isSocialMode || !validateEmail(email)
+    sendOtpBtn.textContent = otpEmail && email === otpEmail ? '재발송' : '인증발송'
+    if (otpCooldown) sendOtpBtn.textContent = '잠시 대기'
+}
+
+function startOtpCooldown() {
+    otpCooldown = true
+    setTimeout(() => {
+        otpCooldown = false
+        updateSendOtpButton()
+    }, 60_000)
 }
 
 // 1. 이메일 입력 시 실시간 감지 -> 버튼 활성화 / 비활성화
@@ -49,12 +65,7 @@ emailInput.addEventListener('input', () => {
         otpStatusText.textContent = ''
     }
 
-    // 올바른 이메일 형식이 작성되었고 이미 인증 완료된 상태가 아니면 버튼 활성화
-    if (validateEmail(emailVal) && !isEmailVerified && !otpBusy) {
-        sendOtpBtn.disabled = false
-    } else {
-        sendOtpBtn.disabled = true
-    }
+    updateSendOtpButton()
 })
 
 // 입력창 클릭/타이핑 시 빨간 에러 테두리 제거
@@ -109,7 +120,7 @@ const sessionReady = (callbackError ? Promise.resolve(showAuthStatus(callbackErr
 // 3. 이메일 인증번호 발송 (Supabase OTP)
 sendOtpBtn.addEventListener('click', async () => {
     await sessionReady
-    if (otpBusy || isEmailVerified || isSocialMode) return
+    if (otpBusy || otpCooldown || isEmailVerified || isSocialMode) return
     const email = emailInput.value.trim()
 
     if (!validateEmail(email)) {
@@ -133,14 +144,21 @@ sendOtpBtn.addEventListener('click', async () => {
         otpStatusText.textContent = ''
         showAuthStatus('인증 메일을 발송했습니다. 메일에 적힌 인증번호를 입력해 주세요.', true)
         otpGroup.classList.remove('hidden')
+        startOtpCooldown()
     } catch (error) {
-        showAuthStatus(error)
+        if (error?.status === 429 || ['over_email_send_rate_limit', 'over_request_rate_limit'].includes(error?.code)) {
+            startOtpCooldown()
+            showAuthStatus(otpEmail === email
+                ? '인증 메일 발송이 제한됐어요. 이미 받은 인증번호는 입력할 수 있어요.'
+                : '인증 메일 발송이 제한됐어요. 잠시 후 다시 시도해 주세요.')
+        } else {
+            showAuthStatus(error)
+        }
     } finally {
         otpBusy = false
         emailInput.disabled = false
         verifyOtpBtn.disabled = false
-        sendOtpBtn.disabled = false
-        sendOtpBtn.textContent = otpEmail === email ? '재발송' : '인증발송'
+        updateSendOtpButton()
     }
 })
 
@@ -181,7 +199,7 @@ verifyOtpBtn.addEventListener('click', async () => {
     } finally {
         otpBusy = false
         emailInput.disabled = isEmailVerified
-        sendOtpBtn.disabled = isEmailVerified
+        updateSendOtpButton()
         verifyOtpBtn.disabled = isEmailVerified
     }
 })

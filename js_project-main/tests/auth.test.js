@@ -36,6 +36,7 @@ async function page(name, overrides = {}, query = '') {
     const elements = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(([tag, id]) => [id, element(tag)]))
     const calls = []
     const clients = []
+    const timers = []
     const defaults = {
         getSession: async () => ({ data: { session: null }, error: null }),
         getUser: async () => ({ data: { user }, error: null }),
@@ -53,6 +54,7 @@ async function page(name, overrides = {}, query = '') {
     const context = vm.createContext({
         window: { location },
         URL, URLSearchParams,
+        setTimeout: (callback, delay) => timers.push({ callback, delay }),
         document: {
             querySelector: selector => elements.get(selector.slice(1)),
             querySelectorAll: () => [],
@@ -88,7 +90,7 @@ async function page(name, overrides = {}, query = '') {
     await entry.evaluate()
     await new Promise(setImmediate)
     return {
-        get: id => elements.get(id), calls, clients, location,
+        get: id => elements.get(id), calls, clients, location, timers,
         async fill(id, value) { elements.get(id).value = value; await elements.get(id).dispatch('input') },
         click: id => elements.get(id).dispatch('click'),
         submit: () => elements.get(`${name}-form`).dispatch('submit'),
@@ -196,6 +198,35 @@ test('메일 발송 오류 후 버튼을 복구하고 재발송할 수 있다', 
     fail = false
     await p.click('send-otp-btn')
     assert.equal(p.get('otp-group').classList.contains('hidden'), false)
+})
+
+test('발송 제한 중 재요청을 막고 이미 받은 인증번호로 인증할 수 있다', async () => {
+    let rateLimited = false
+    const p = await page('signup', {
+        signInWithOtp: async () => ({ error: rateLimited ? { status: 429 } : null }),
+    })
+    const send = p.get('send-otp-btn')
+    await p.fill('email', email)
+    await p.click('send-otp-btn')
+    assert.equal(send.disabled, true)
+    await p.click('send-otp-btn')
+    assert.equal(p.calls.filter(call => call.method === 'signInWithOtp').length, 1)
+
+    const firstCooldown = p.timers.shift()
+    assert.equal(firstCooldown.delay, 60_000)
+    firstCooldown.callback()
+    assert.equal(send.disabled, false)
+
+    rateLimited = true
+    await p.click('send-otp-btn')
+    assert.equal(send.disabled, true)
+    assert.match(p.get('auth-status').textContent, /이미 받은 인증번호/)
+    await p.fill('otp', '12345678')
+    await p.click('verify-otp-btn')
+    assert.equal(p.calls.some(call => call.method === 'verifyOtp'), true)
+    p.timers.shift().callback()
+    assert.equal(send.disabled, true)
+    assert.match(p.get('otp-status-text').textContent, /인증이 완료/)
 })
 
 test('OTP 만료 시 인증 완료로 처리하지 않고 다시 시도할 수 있다', async () => {
