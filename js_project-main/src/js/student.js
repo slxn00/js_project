@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js';
+import { getUserDisplayName } from './auth.js';
 import { createClassroomStore } from './classroom-store.js';
 import { createCalendarStore, eventTiming, eventRange, todayISO } from './calendar.js';
 import { createPhotoCheckinClient, attendanceMessage } from './checkin/client.js';
@@ -154,7 +155,7 @@ async function loadStudent() {
       return;
     }
     user = auth.data.user;
-    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '학생';
+    const name = getUserDisplayName(user, '학생');
     $('#studentName').textContent = name;
     $('#studentEmail').textContent = user.email || '';
     $('#studentJoinName').value = name;

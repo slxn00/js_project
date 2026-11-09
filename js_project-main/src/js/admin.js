@@ -1,6 +1,6 @@
 
 import { supabase } from "./supabaseClient.js";
-import { redirectAuthCallbackError } from './auth.js';
+import { getUserDisplayName, redirectAuthCallbackError } from './auth.js';
 import { createClassroomStore, readSavedClasses, savedClassesKey } from './classroom-store.js';
 import { createClassroomDialog } from './classroom-dialog.js';
 import { createAdminCalendar } from './admin-calendar.js';
@@ -70,13 +70,7 @@ async function loadTeacher() {
     const user = data.user;
     accountUserId = user.id;
 
-    const name =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      user.email?.split("@")[0] ||
-      "사용자";
-
-    $("#teacherName").textContent = name;
+    $("#teacherName").textContent = getUserDisplayName(user);
     $("#teacherEmail").textContent = user.email || "";
     $("#accountEmail").textContent = user.email || "";
 

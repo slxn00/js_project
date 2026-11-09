@@ -126,15 +126,12 @@ sendOtpBtn.addEventListener('click', async () => {
     showAuthStatus('')
 
     try {
-        const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: { emailRedirectTo: window.location.origin + '/signup.html' },
-        })
+        const { error } = await supabase.auth.signInWithOtp({ email })
         if (error) throw error
         otpEmail = email
         otpInput.value = ''
         otpStatusText.textContent = ''
-        showAuthStatus('인증 메일을 발송했습니다. 메일의 인증번호를 입력하거나 인증 링크를 열어 주세요.', true)
+        showAuthStatus('인증 메일을 발송했습니다. 메일에 적힌 인증번호를 입력해 주세요.', true)
         otpGroup.classList.remove('hidden')
     } catch (error) {
         showAuthStatus(error)
@@ -153,7 +150,7 @@ verifyOtpBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim()
     const token = otpInput.value.trim()
 
-    if (!token || email !== otpEmail) {
+    if (!/^\d+$/.test(token) || !otpEmail || email !== otpEmail) {
         otpInput.classList.add('error')
         showAuthStatus('인증번호를 발송한 이메일과 메일의 인증번호를 확인해 주세요.')
         return

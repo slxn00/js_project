@@ -1,3 +1,11 @@
+[auth.email.template.confirmation]
+subject = "이메일 인증번호"
+content_path = "./supabase/templates/email-otp.html"
+
+[auth.email.template.magic_link]
+subject = "이메일 인증번호"
+content_path = "./supabase/templates/email-otp.html"
+
 [functions.neis-calendar]
 verify_jwt = true
 entrypoint = "./functions/neis-calendar/index.js"

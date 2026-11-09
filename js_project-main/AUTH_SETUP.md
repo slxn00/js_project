@@ -10,7 +10,7 @@
 Supabase의 Authentication 설정도 확인합니다.
 
 1. **URL Configuration**: Site URL을 실제 서비스 주소로 설정하고 Redirect URLs에 개발/배포 주소의 `/main.html`, `/signup.html`을 각각 추가합니다. 예: `http://localhost:5173/signup.html`.
-2. **Email Templates → Magic Link**: 인증번호 입력을 사용하려면 메일 본문에 `{{ .Token }}`을 넣습니다. 기본 인증 링크를 사용해도 `/signup.html`로 돌아온 후 이름과 비밀번호를 저장할 수 있습니다.
+2. **Email Templates → Confirm sign up 및 Magic Link**: 두 템플릿의 제목을 `이메일 인증번호`로 지정하고, 본문을 [인증번호 템플릿](supabase/templates/email-otp.html)으로 교체합니다. 신규·미인증 계정에 가입 확인 메일이 발송될 수 있어 두 템플릿을 설정합니다. 호스팅 프로젝트에서는 대시보드에 저장하고, 로컬 Supabase는 `supabase/config.toml`에서 이 파일을 읽습니다.
 3. **Providers → Google / Kakao**: 사용할 제공자를 활성화하고 해당 제공자의 Client ID/Secret을 설정합니다. 제공자 콘솔에는 Supabase가 안내하는 callback URL을 등록합니다. 카카오 지도 JavaScript 키는 카카오 로그인 설정과 별개입니다.
 
 카카오 로그인 후 `invalid_scope: account_email` 또는 KOE205가 발생하면 카카오 Developers의 **카카오 로그인 → 동의항목**에서 이메일(`account_email`), 닉네임(`profile_nickname`), 프로필 사진(`profile_image`) 설정과 해당 앱의 요청 권한을 확인합니다. 현재 Supabase Auth의 Kakao 제공자는 이 세 항목을 기본 요청합니다. `scopes` 옵션은 기본값에 추가되므로 프런트에서 이메일 항목을 뺀 문자열을 지정해도 기본 요청을 제거하지 못합니다. Supabase의 **Allow users without an email**은 반환된 이메일이 없는 계정을 허용하는 설정이며, 이 요청 항목을 제거하는 설정이 아닙니다. 이메일 항목이 **권한 없음**이면 카카오 앱의 해당 권한을 확보해야 합니다.

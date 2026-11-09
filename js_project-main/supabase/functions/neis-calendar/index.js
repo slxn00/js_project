@@ -20,9 +20,7 @@ function send(data, status = 200) {
 function normalize(name) {
     return String(name)
         .replace(/[\s·()]/g, "")
-        .replace(/고등학교$/, "고")
-        .replace(/중학교$/, "중")
-        .replace(/초등학교$/, "초");
+        .replace(/(?:고등학교|중학교|초등학교)$/, schoolType => schoolType[0]);
 }
 
 // 나이스 API 요청
@@ -112,8 +110,8 @@ async function getAllRows(endpoint, params) {
 
 // 학급에 저장된 학교명으로 학교 코드 검색
 async function findSchools(schoolName) {
-    const shortened = normalize(schoolName)
-        .replace(/(고|중|초)$/, "");
+    const normalizedName = normalize(schoolName);
+    const shortened = normalizedName.replace(/[고중초]$/, "");
 
     const queries = [...new Set(
         [schoolName, shortened].filter(Boolean)
@@ -126,7 +124,7 @@ async function findSchools(schoolName) {
 
         const schools = rows
             .filter(row =>
-                normalize(row.SCHUL_NM) === normalize(schoolName)
+                normalize(row.SCHUL_NM) === normalizedName
             )
             .map(row => ({
                 name: row.SCHUL_NM,
